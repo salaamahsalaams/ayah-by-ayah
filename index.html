@@ -2065,8 +2065,49 @@
       if (settings.notifications_enabled) scheduleNotifications();
     }
 
+    // Back-to-front: surahs in reverse (114→1), ayahs within each surah forward (1→2→3)
+    // Maps a progress index (0-based) to a global ayah number
+    function backToFrontGlobal(idx) {
+      let count = 0;
+      for (let s = SURAHS.length - 1; s >= 0; s--) {
+        const surahCount = SURAHS[s][3];
+        if (idx < count + surahCount) {
+          const ayahInSurah = idx - count; // 0-based
+          return SURAH_STARTS[s] + ayahInSurah;
+        }
+        count += surahCount;
+      }
+      return 1;
+    }
+
+    // Maps a surah index + ayah-in-surah (1-based) to a back-to-front progress index
+    function backToFrontIndex(surahIdx, ayahInSurah) {
+      let count = 0;
+      for (let s = SURAHS.length - 1; s > surahIdx; s--) {
+        count += SURAHS[s][3];
+      }
+      return count + (ayahInSurah - 1);
+    }
+
+    // How many ayahs are learned in a given surah (for back-to-front tracker)
+    function getLearnedInSurah(surahIdx) {
+      if (settings.direction !== 'back') {
+        const start = SURAH_STARTS[surahIdx];
+        const count = SURAHS[surahIdx][3];
+        return Math.max(0, Math.min(count, progress.learned - start + 1));
+      }
+      // Back-to-front: count how many in this surah are done
+      let before = 0;
+      for (let s = SURAHS.length - 1; s > surahIdx; s--) {
+        before += SURAHS[s][3];
+      }
+      const surahCount = SURAHS[surahIdx][3];
+      const doneInSurah = Math.max(0, Math.min(surahCount, progress.learned - before));
+      return doneInSurah;
+    }
+
     function currentAyahNum() {
-      if (settings.direction === 'back') return Math.max(TOTAL - progress.learned, 1);
+      if (settings.direction === 'back') return backToFrontGlobal(progress.learned);
       return Math.min(progress.learned + 1, TOTAL);
     }
 
@@ -2904,11 +2945,10 @@
     document.getElementById('jumpBtn').addEventListener('click', async function() {
       const surahIdx = parseInt(document.getElementById('setSurah').value, 10);
       const ayahInSurah = parseInt(document.getElementById('setAyah').value, 10);
-      const globalAyah = SURAH_STARTS[surahIdx] + ayahInSurah - 1;
-
       if (settings.direction === 'back') {
-        progress.learned = TOTAL - globalAyah;
+        progress.learned = backToFrontIndex(surahIdx, ayahInSurah);
       } else {
+        const globalAyah = SURAH_STARTS[surahIdx] + ayahInSurah - 1;
         progress.learned = globalAyah - 1;
       }
       todayCount = 0;
@@ -3018,8 +3058,7 @@
       // Update fills
       for (let i = 0; i < SURAHS.length; i++) {
         const count = SURAHS[i][3];
-        const start = SURAH_STARTS[i];
-        const done = Math.max(0, Math.min(count, learned - start + 1));
+        const done = getLearnedInSurah(i);
         const sp = count > 0 ? Math.round((done / count) * 100) : 0;
 
         document.getElementById('sbar' + i).style.width = sp + '%';
@@ -3029,10 +3068,10 @@
         if (done >= count) card.classList.add('complete');
         else card.classList.remove('complete');
 
-        // Update dots
+        // Update dots — in back-to-front, ayahs are learned forward within surah
         for (let a = 0; a < count; a++) {
           const dot = document.getElementById('adot' + i + '_' + a);
-          if (start + a <= learned) dot.classList.add('done');
+          if (a < done) dot.classList.add('done');
           else dot.classList.remove('done');
         }
       }
