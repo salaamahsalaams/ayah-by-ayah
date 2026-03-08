@@ -3019,6 +3019,8 @@
     });
 
     // ===== QURAN VIEW =====
+    let _lastQuranDirection = null;
+
     function renderQuran() {
       const learned = progress.learned;
       const pct = ((learned / TOTAL) * 100).toFixed(1);
@@ -3027,10 +3029,17 @@
       document.getElementById('quranOverallText').textContent = learned.toLocaleString() + ' of 6,236 ayahs learned (' + pct + '%)';
 
       const container = document.getElementById('surahList');
-      // Only rebuild if not already built
-      if (container.children.length === 0) {
+      const isBack = settings.direction === 'back';
+
+      // Rebuild if not built or direction changed
+      if (container.children.length === 0 || _lastQuranDirection !== settings.direction) {
+        _lastQuranDirection = settings.direction;
+        const order = [];
+        for (let i = 0; i < SURAHS.length; i++) order.push(i);
+        if (isBack) order.reverse();
+
         let html = '';
-        for (let i = 0; i < SURAHS.length; i++) {
+        for (const i of order) {
           const [num, en, ar, count] = SURAHS[i];
           html += '<div class="surah-card" data-idx="' + i + '">';
           html += '<div class="surah-card-header">';
@@ -3039,7 +3048,6 @@
           html += '<div class="surah-card-name"><span>' + en + '</span><span class="surah-card-name-ar">' + ar + '</span></div>';
           html += '<div class="surah-card-progress"><div class="surah-bar"><div class="surah-bar-fill" id="sbar' + i + '"></div></div><span class="surah-pct" id="spct' + i + '"></span></div>';
           html += '</div></div>';
-          // Ayah dots
           html += '<div class="surah-dots" id="sdots' + i + '">';
           for (let a = 0; a < count; a++) {
             html += '<div class="ayah-dot" id="adot' + i + '_' + a + '"></div>';
@@ -3048,7 +3056,6 @@
         }
         container.innerHTML = html;
 
-        // Toggle expand on click
         container.addEventListener('click', function(e) {
           const card = e.target.closest('.surah-card');
           if (card) card.classList.toggle('expanded');
@@ -3064,11 +3071,10 @@
         document.getElementById('sbar' + i).style.width = sp + '%';
         document.getElementById('spct' + i).textContent = done + '/' + count;
 
-        const card = document.querySelectorAll('.surah-card')[i];
+        const card = document.querySelector('.surah-card[data-idx="' + i + '"]');
         if (done >= count) card.classList.add('complete');
         else card.classList.remove('complete');
 
-        // Update dots — in back-to-front, ayahs are learned forward within surah
         for (let a = 0; a < count; a++) {
           const dot = document.getElementById('adot' + i + '_' + a);
           if (a < done) dot.classList.add('done');
