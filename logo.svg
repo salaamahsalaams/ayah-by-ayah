@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a24"/>
+      <stop offset="100%" style="stop-color:#111118"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4b154"/>
+      <stop offset="100%" style="stop-color:#b8922e"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- Open book -->
+  <g transform="translate(256,240)">
+    <!-- Left page -->
+    <path d="M-8,-80 Q-8,-90 -18,-90 L-120,-90 Q-140,-90 -140,-70 L-140,60 Q-140,80 -120,80 L-18,80 Q-8,80 -8,70 Z" fill="none" stroke="url(#gold)" stroke-width="6" opacity="0.9"/>
+    <!-- Right page -->
+    <path d="M8,-80 Q8,-90 18,-90 L120,-90 Q140,-90 140,-70 L140,60 Q140,80 120,80 L18,80 Q8,80 8,70 Z" fill="none" stroke="url(#gold)" stroke-width="6" opacity="0.9"/>
+    <!-- Spine -->
+    <line x1="0" y1="-90" x2="0" y2="80" stroke="url(#gold)" stroke-width="4" opacity="0.6"/>
+    <!-- Text lines left -->
+    <line x1="-110" y1="-55" x2="-30" y2="-55" stroke="url(#gold)" stroke-width="3" opacity="0.3" stroke-linecap="round"/>
+    <line x1="-110" y1="-35" x2="-25" y2="-35" stroke="url(#gold)" stroke-width="3" opacity="0.3" stroke-linecap="round"/>
+    <line x1="-110" y1="-15" x2="-35" y2="-15" stroke="url(#gold)" stroke-width="3" opacity="0.3" stroke-linecap="round"/>
+    <line x1="-110" y1="5" x2="-28" y2="5" stroke="url(#gold)" stroke-width="3" opacity="0.3" stroke-linecap="round"/>
+    <line x1="-110" y1="25" x2="-40" y2="25" stroke="url(#gold)" stroke-width="3" opacity="0.3" stroke-linecap="round"/>
+    <line x1="-110" y1="45" x2="-32" y2="45" stroke="url(#gold)" stroke-width="3" opacity="0.3" stroke-linecap="round"/>
+    <!-- Text lines right -->
+    <line x1="30" y1="-55" x2="110" y2="-55" stroke="url(#gold)" stroke-width="3" opacity="0.3" stroke-linecap="round"/>
+    <line x1="25" y1="-35" x2="110" y2="-35" stroke="url(#gold)" stroke-width="3" opacity="0.3" stroke-linecap="round"/>
+    <line x1="35" y1="-15" x2="110" y2="-15" stroke="url(#gold)" stroke-width="3" opacity="0.3" stroke-linecap="round"/>
+    <line x1="28" y1="5" x2="110" y2="5" stroke="url(#gold)" stroke-width="3" opacity="0.3" stroke-linecap="round"/>
+    <line x1="40" y1="25" x2="110" y2="25" stroke="url(#gold)" stroke-width="3" opacity="0.3" stroke-linecap="round"/>
+    <line x1="32" y1="45" x2="110" y2="45" stroke="url(#gold)" stroke-width="3" opacity="0.3" stroke-linecap="round"/>
+    <!-- Star/ornament at center top -->
+    <circle cx="0" cy="-105" r="8" fill="url(#gold)" opacity="0.8"/>
+  </g>
+  <!-- App name -->
+  <text x="256" y="390" text-anchor="middle" font-family="serif" font-size="42" font-weight="700" fill="url(#gold)" letter-spacing="2">AYAH BY AYAH</text>
+</svg>

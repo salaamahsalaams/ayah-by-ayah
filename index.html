@@ -1,0 +1,3045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Ayah by Ayah</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="logo.svg">
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#111118">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root, [data-theme="dark"] {
+      --bg: #111118;
+      --surface: #1a1a24;
+      --surface2: #222230;
+      --accent: #c9a84c;
+      --accent-dim: rgba(201,168,76,0.15);
+      --text: #e8e4dc;
+      --text-dim: rgba(232,228,220,0.45);
+      --text-mid: rgba(232,228,220,0.7);
+    }
+
+    [data-theme="light"] {
+      --bg: #f5f2eb;
+      --surface: #ffffff;
+      --surface2: #e8e4dc;
+      --accent: #b8922e;
+      --accent-dim: rgba(184,146,46,0.12);
+      --text: #1a1a24;
+      --text-dim: rgba(26,26,36,0.45);
+      --text-mid: rgba(26,26,36,0.7);
+    }
+
+    [data-theme="light"] .google-btn { background: #fff; border: 1px solid #ddd; }
+    [data-theme="light"] .toast.success { background: #eaf7ee; border-color: rgba(46,204,113,0.3); }
+    [data-theme="light"] .toast.error { background: #fdeaea; border-color: rgba(231,76,60,0.3); }
+    [data-theme="light"] .toast.info { background: #eaedfd; border-color: rgba(100,150,255,0.3); }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ===== AUTH ===== */
+    .auth-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      padding: 40px 24px;
+      gap: 20px;
+    }
+
+    .auth-logo {
+      font-family: 'Amiri', serif;
+      font-size: 2.4rem;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .auth-sub {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+    }
+
+    .google-btn {
+      background: #fff;
+      color: #333;
+      border: none;
+      padding: 12px 24px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 300px;
+      justify-content: center;
+      transition: transform 0.15s;
+    }
+
+    .google-btn:hover { transform: scale(1.02); }
+    .google-btn svg { width: 18px; height: 18px; }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 300px;
+      color: var(--text-dim);
+      font-size: 0.75rem;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--surface2);
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .auth-form input {
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .auth-form input:focus { border-color: var(--accent); }
+    .auth-form input::placeholder { color: var(--text-dim); }
+
+    .auth-btn {
+      border: none;
+      padding: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.25s, transform 0.15s;
+    }
+
+    .auth-btn.signin { background: var(--accent); color: var(--bg); }
+    .auth-btn.signup { background: #2ecc71; color: #fff; }
+    .auth-btn:hover { transform: scale(1.02); }
+    .auth-btn:disabled { opacity: 0.5; transform: none; }
+
+    .password-rules {
+      display: none;
+      font-size: 0.72rem;
+      line-height: 1.6;
+      color: var(--text-dim);
+      padding: 6px 2px;
+    }
+
+    .password-rules.show { display: block; }
+
+    .pw-rule { display: flex; align-items: center; gap: 6px; }
+    .pw-rule .check { color: #e74c3c; font-size: 0.8rem; }
+    .pw-rule.pass .check { color: #2ecc71; }
+    .pw-rule.pass { color: var(--text-mid); }
+
+    .auth-toggle {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+
+    .auth-forgot {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 0.75rem;
+      margin-top: 2px;
+      text-decoration: underline;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .auth-forgot:hover { color: var(--text-mid); }
+
+    .auth-error { color: #e74c3c; font-size: 0.8rem; min-height: 18px; }
+    .auth-message { color: var(--accent); font-size: 0.8rem; min-height: 18px; }
+
+    /* ===== TOAST ===== */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+      width: 90%;
+      max-width: 380px;
+    }
+
+    .toast {
+      pointer-events: auto;
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      animation: toastIn 0.3s ease, toastOut 0.3s ease 3.2s forwards;
+    }
+
+    .toast-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+    .toast.success { background: #1a2e1a; border: 1px solid rgba(46,204,113,0.3); color: #2ecc71; }
+    .toast.error { background: #2e1a1a; border: 1px solid rgba(231,76,60,0.3); color: #e74c3c; }
+    .toast.info { background: #1a1a2e; border: 1px solid rgba(100,150,255,0.3); color: #6496ff; }
+
+    @keyframes toastIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-12px); } }
+
+    /* ===== APP LAYOUT ===== */
+    .app-screen {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+    }
+
+    /* --- Tab Bar --- */
+    .tab-bar {
+      display: flex;
+      border-bottom: 1px solid var(--surface2);
+      flex-shrink: 0;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 12px 0;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .tab-btn.active { color: var(--accent); }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 20%;
+      right: 20%;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .tab-content { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+    .tab-content.active { display: flex; }
+
+    /* --- Top Bar --- */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      flex-shrink: 0;
+    }
+
+    .top-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-title {
+      font-family: 'Amiri', serif;
+      font-size: 1.2rem;
+      color: var(--accent);
+    }
+
+    .progress-pill {
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .streak-badge {
+      font-size: 0.75rem;
+      color: var(--text-mid);
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      transition: color 0.2s;
+    }
+
+    .icon-btn:hover { color: var(--text); }
+    .icon-btn svg { width: 20px; height: 20px; }
+
+    /* --- Surah Header --- */
+    .surah-header {
+      text-align: center;
+      padding: 8px 20px 16px;
+      flex-shrink: 0;
+    }
+
+    .surah-name {
+      font-family: 'Amiri', serif;
+      font-size: 1.3rem;
+      color: var(--text);
+    }
+
+    .surah-meta {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    /* --- Ayah Page --- */
+    .ayah-page {
+      flex: 1;
+      display: flex;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 12px 16px;
+      min-height: 0;
+    }
+
+    .ayah-page-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      margin: auto 0;
+      padding: 8px 0;
+    }
+
+    .ayah-text {
+      font-family: 'Amiri', serif;
+      font-size: var(--ayah-font, 2.2rem);
+      line-height: var(--ayah-line, 2.4);
+      direction: rtl;
+      text-align: center;
+      max-width: 90vw;
+      width: 100%;
+      color: var(--text);
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .translation-text {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: var(--text-mid);
+      text-align: center;
+      max-width: 90vw;
+      width: 100%;
+      margin-top: 8px;
+      display: none;
+      direction: ltr;
+    }
+
+    @media (min-width: 768px) {
+      .ayah-text, .translation-text { max-width: 700px; }
+      .ayah-page { padding: 20px 28px; }
+    }
+
+    @media (min-width: 1200px) {
+      .ayah-text, .translation-text { max-width: 900px; }
+    }
+
+    .translation-text.show { display: block; }
+
+    .no-tajweed .tj { color: inherit !important; }
+
+    .ayah-text .tj {
+      cursor: pointer;
+      padding: 0 2px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .ayah-text .tj:hover { background: rgba(255,255,255,0.08); }
+
+    .tj-h  { color: #8a8a8a; }
+    .tj-l  { color: #8a8a8a; }
+    .tj-n  { color: #6b9bff; }
+    .tj-p  { color: #5a7aff; }
+    .tj-m  { color: #3355cc; }
+    .tj-s  { color: #666; }
+    .tj-o  { color: #40c4f7; }
+    .tj-c  { color: #e040a0; }
+    .tj-a  { color: #2ecc71; }
+    .tj-q  { color: #e74c3c; }
+    .tj-f  { color: #b040d0; }
+    .tj-w  { color: #1abc9c; }
+    .tj-e  { color: #f39c12; }
+    .tj-g  { color: #2ecc71; }
+
+    .loading-text {
+      color: var(--text-dim);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      direction: ltr;
+    }
+
+    .error-text {
+      color: #e74c3c;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      direction: ltr;
+    }
+
+    /* --- Audio Player Bar --- */
+    .player-bar {
+      background: var(--surface);
+      border-top: 1px solid var(--surface2);
+      padding: 16px 20px 20px;
+      flex-shrink: 0;
+    }
+
+    .player-progress {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .player-time {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      min-width: 32px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .scrubber {
+      flex: 1;
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 2px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .scrubber-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    .scrubber-thumb {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 14px;
+      height: 14px;
+      background: var(--accent);
+      border-radius: 50%;
+      left: 0%;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .scrubber:hover .scrubber-thumb { opacity: 1; }
+
+    .player-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+    }
+
+    .ctrl-btn {
+      background: none;
+      border: none;
+      color: var(--text-mid);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+
+    .ctrl-btn:hover { color: var(--text); }
+    .ctrl-btn svg { width: 22px; height: 22px; fill: currentColor; }
+
+    .play-wrap {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .play-ring {
+      position: absolute;
+      inset: 0;
+      transform: rotate(-90deg);
+    }
+
+    .play-ring circle {
+      fill: none;
+      stroke-width: 3;
+    }
+
+    .play-ring .ring-bg {
+      stroke: var(--surface2);
+    }
+
+    .play-ring .ring-fill {
+      stroke: var(--accent);
+      stroke-linecap: round;
+      stroke-dasharray: 188.496;
+      stroke-dashoffset: 188.496;
+      transition: stroke-dashoffset 0.15s linear;
+    }
+
+    .play-ring.loaded .ring-fill { stroke-dashoffset: 0; }
+    .play-ring.hidden { opacity: 0; }
+
+    .play-main {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s, box-shadow 0.15s;
+      position: relative;
+      z-index: 1;
+    }
+
+    .play-main:hover {
+      transform: scale(1.08);
+      box-shadow: 0 4px 20px rgba(201,168,76,0.3);
+    }
+
+    .play-main svg { width: 26px; height: 26px; fill: var(--bg); }
+
+    .play-main.loading { opacity: 0.6; cursor: wait; }
+
+    .repeat-btn {
+      position: relative;
+    }
+
+    .repeat-btn.active { color: var(--accent); }
+
+    .repeat-badge {
+      position: absolute;
+      top: -4px;
+      right: -8px;
+      background: var(--accent);
+      color: var(--bg);
+      font-size: 0.55rem;
+      font-weight: 700;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .repeat-badge:empty { display: none; }
+
+    .repeat-counter {
+      text-align: center;
+      font-size: 0.65rem;
+      color: var(--accent);
+      margin-top: 4px;
+      min-height: 16px;
+    }
+
+    .reciter-name {
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-top: 6px;
+    }
+
+    /* --- Bottom Action --- */
+    .bottom-action {
+      background: var(--surface);
+      padding: 0 20px 20px;
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    .learn-btn {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 14px 40px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 14px;
+      cursor: pointer;
+      width: 100%;
+      max-width: 400px;
+      font-family: 'Inter', sans-serif;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    .learn-btn:hover { transform: scale(1.02); }
+    .learn-btn:disabled { opacity: 0.35; cursor: default; transform: none; }
+
+    .done-message {
+      display: none;
+      font-size: 0.85rem;
+      color: var(--accent);
+      padding: 14px 0 6px;
+      font-weight: 500;
+    }
+
+    .continue-btn {
+      background: none;
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
+      padding: 10px 32px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.2s;
+    }
+
+    .continue-btn:hover { background: var(--accent-dim); }
+
+    .sync-status {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      margin-top: 6px;
+      min-height: 16px;
+    }
+
+    /* --- Tajweed Tooltip --- */
+    .tj-tooltip {
+      display: none;
+      position: fixed;
+      background: var(--surface2);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 14px 18px;
+      z-index: 200;
+      max-width: 280px;
+      text-align: left;
+      direction: ltr;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+    }
+
+    .tj-tooltip.show { display: block; }
+    .tj-tooltip-rule { font-weight: 700; font-size: 0.9rem; margin-bottom: 3px; }
+    .tj-tooltip-arabic { font-size: 0.8rem; color: var(--text-mid); margin-bottom: 6px; }
+    .tj-tooltip-desc { font-size: 0.75rem; color: var(--text-dim); line-height: 1.5; }
+
+    /* --- Legend Panel --- */
+    .legend-panel {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--surface2);
+      border-radius: 20px 20px 0 0;
+      padding: 20px 24px 32px;
+      z-index: 150;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    }
+
+    .legend-panel.show { display: block; }
+
+    .legend-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .legend-header h3 { font-size: 1rem; }
+
+    .legend-close {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .legend-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 16px;
+      font-size: 0.8rem;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .legend-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 140;
+    }
+
+    .legend-overlay.show { display: block; }
+
+    /* --- Settings Panel --- */
+    .settings-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 300;
+    }
+
+    .settings-overlay.show { display: block; }
+
+    .settings-panel {
+      position: fixed;
+      top: 0;
+      right: -100%;
+      width: 100%;
+      max-width: 420px;
+      height: 100%;
+      background: var(--bg);
+      z-index: 310;
+      overflow-y: auto;
+      transition: right 0.3s ease;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .settings-panel.show { right: 0; }
+
+    .settings-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--surface2);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 1;
+    }
+
+    .settings-header h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .settings-close {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 1.5rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+    }
+
+    .settings-body { padding: 8px 0 40px; }
+
+    .settings-section {
+      padding: 16px 20px 8px;
+    }
+
+    .settings-section-title {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--surface2);
+      gap: 12px;
+    }
+
+    .setting-row:last-child { border-bottom: none; }
+
+    .setting-label {
+      font-size: 0.85rem;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+
+    .setting-desc {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .setting-select {
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 0.8rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      min-width: 120px;
+      cursor: pointer;
+    }
+
+    .setting-select:focus { border-color: var(--accent); }
+
+    .setting-toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .setting-toggle input { opacity: 0; width: 0; height: 0; }
+
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--surface2);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: var(--text-dim);
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .setting-toggle input:checked + .toggle-track { background: var(--accent-dim); }
+    .setting-toggle input:checked + .toggle-track::after { transform: translateX(20px); background: var(--accent); }
+
+    .setting-btn {
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      color: var(--text-mid);
+      font-size: 0.8rem;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.2s;
+      width: 100%;
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    .setting-btn:hover { background: var(--surface2); color: var(--text); }
+
+    .setting-btn.danger {
+      color: #e74c3c;
+      border-color: rgba(231,76,60,0.2);
+    }
+
+    .setting-btn.danger:hover { background: rgba(231,76,60,0.1); }
+
+    .position-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .position-row .setting-select { min-width: 0; flex: 1; }
+
+    .setting-pw-form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .setting-pw-form input {
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .setting-pw-form input:focus { border-color: var(--accent); }
+    .setting-pw-form input::placeholder { color: var(--text-dim); }
+
+    /* --- Quran View --- */
+    .quran-view {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 16px 32px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .quran-overall {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .quran-overall-bar {
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .quran-overall-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+
+    .quran-overall-text {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .surah-card {
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: 12px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .surah-card.complete { border-color: rgba(201,168,76,0.3); }
+
+    .surah-card-header {
+      display: flex;
+      align-items: center;
+      padding: 12px 14px;
+      cursor: pointer;
+      gap: 12px;
+    }
+
+    .surah-num {
+      width: 32px;
+      height: 32px;
+      background: var(--surface2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .surah-card.complete .surah-num {
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .surah-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .surah-card-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .surah-card-name-ar {
+      font-family: 'Amiri', serif;
+      font-size: 1rem;
+      color: var(--text-mid);
+    }
+
+    .surah-card-progress {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .surah-bar {
+      flex: 1;
+      height: 3px;
+      background: var(--surface2);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .surah-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .surah-card.complete .surah-bar-fill { background: var(--accent); }
+
+    .surah-pct {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      min-width: 28px;
+      text-align: right;
+    }
+
+    .surah-dots {
+      display: none;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 0 14px 12px;
+    }
+
+    .surah-card.expanded .surah-dots { display: flex; }
+
+    .ayah-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      background: var(--surface2);
+    }
+
+    .ayah-dot.done {
+      background: var(--accent);
+    }
+
+    .completed-banner {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .completed-banner h2 {
+      font-family: 'Amiri', serif;
+      font-size: 2rem;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .completed-banner p { color: var(--text-mid); }
+
+    /* ===== NOTIFICATION TIMES ===== */
+    .notif-times-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .notif-time-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .notif-time-input {
+      width: 52px;
+      background: var(--bg);
+      border: 1px solid var(--surface2);
+      border-radius: 8px;
+      padding: 6px 8px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      text-align: center;
+      outline: none;
+    }
+
+    .notif-time-input:focus { border-color: var(--accent); }
+
+    .notif-time-sep {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    .notif-ampm-group {
+      display: flex;
+      border: 1px solid var(--surface2);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .notif-ampm-btn {
+      background: var(--bg);
+      border: none;
+      padding: 6px 10px;
+      color: var(--text-dim);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .notif-ampm-btn.active {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    /* ===== DAILY GOAL POPUP ===== */
+    .goal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 8000;
+      animation: goalOverlayIn 0.3s ease;
+    }
+
+    @keyframes goalOverlayIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .goal-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.85);
+      z-index: 8001;
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: 24px;
+      padding: 32px 28px 28px;
+      width: 90%;
+      max-width: 360px;
+      text-align: center;
+      display: none;
+      animation: goalPopIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+
+    @keyframes goalPopIn {
+      from { opacity: 0; transform: translate(-50%, -50%) scale(0.85); }
+      to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    .goal-popup-ring {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 16px;
+      position: relative;
+    }
+
+    .goal-popup-ring svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .goal-popup-ring .ring-track {
+      fill: none;
+      stroke: var(--surface2);
+      stroke-width: 6;
+    }
+
+    .goal-popup-ring .ring-progress {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-dasharray: 251.33;
+      stroke-dashoffset: 251.33;
+      transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .goal-popup-ring .ring-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .goal-popup h2 {
+      font-family: 'Amiri', serif;
+      font-size: 1.6rem;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .goal-popup .goal-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-mid);
+      margin-bottom: 18px;
+    }
+
+    .goal-stats {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+
+    .goal-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .goal-stat-num {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .goal-stat-label {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .goal-popup .goal-projection {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .goal-popup .goal-dismiss {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 12px 36px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: transform 0.15s;
+    }
+
+    .goal-popup .goal-dismiss:hover { transform: scale(1.03); }
+
+    .goal-popup .goal-continue-link {
+      display: block;
+      margin-top: 12px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      text-decoration: underline;
+    }
+
+    .goal-popup .goal-continue-link:hover { color: var(--text-mid); }
+
+    .goal-confetti {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 8002;
+      overflow: hidden;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      top: -20px;
+      width: 8px;
+      height: 16px;
+      border-radius: 2px;
+      opacity: 0;
+      animation: confettiFall var(--duration) ease-in forwards;
+      animation-delay: var(--delay);
+    }
+
+    @keyframes confettiFall {
+      0%   { opacity: 1; transform: translateY(0) rotate(0deg); }
+      75%  { opacity: 1; }
+      100% { opacity: 0; transform: translateY(var(--fall)) rotate(var(--cr)); }
+    }
+
+    /* Hide app initially */
+    .app-screen { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- ===== AUTH ===== -->
+  <div class="auth-screen" id="authScreen">
+    <div class="auth-logo">Ayah by Ayah</div>
+    <p class="auth-sub">One ayah a day. Complete the Quran.</p>
+
+    <button class="google-btn" id="googleBtn">
+      <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+
+    <div class="auth-divider"><span>or use email</span></div>
+
+    <form class="auth-form" id="authForm" autocomplete="on">
+      <input type="email" id="emailInput" placeholder="Email" required autocomplete="email" name="email" />
+      <input type="password" id="passwordInput" placeholder="Password" required minlength="8" autocomplete="current-password" name="password" />
+      <div class="password-rules" id="passwordRules">
+        <div class="pw-rule" id="ruleLen"><span class="check">&#10005;</span> At least 8 characters</div>
+        <div class="pw-rule" id="ruleUpper"><span class="check">&#10005;</span> One uppercase letter</div>
+        <div class="pw-rule" id="ruleLower"><span class="check">&#10005;</span> One lowercase letter</div>
+        <div class="pw-rule" id="ruleNum"><span class="check">&#10005;</span> One number</div>
+        <div class="pw-rule" id="ruleSpecial"><span class="check">&#10005;</span> One special character (!@#$...)</div>
+      </div>
+      <button type="submit" class="auth-btn signin" id="authSubmitBtn">Sign In</button>
+      <button type="button" class="auth-forgot" id="forgotBtn">Forgot password?</button>
+      <button type="button" class="auth-toggle" id="authToggle">Don't have an account? Sign up</button>
+    </form>
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-message" id="authMessage"></div>
+  </div>
+
+  <!-- ===== APP ===== -->
+  <div class="app-screen" id="appScreen">
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <span class="app-title">Ayah by Ayah</span>
+        <span class="progress-pill" id="progressPill">0 / 6236</span>
+      </div>
+      <div class="top-bar-right">
+        <span class="streak-badge" id="streakBadge"></span>
+        <button class="icon-btn" id="legendBtn" title="Tajweed Guide">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5"/></svg>
+        </button>
+        <button class="icon-btn" id="settingsBtn" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="settings-overlay" id="settingsOverlay"></div>
+    <div class="settings-panel" id="settingsPanel">
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <button class="settings-close" id="settingsClose">&times;</button>
+      </div>
+      <div class="settings-body">
+
+        <!-- LEARNING -->
+        <div class="settings-section">
+          <div class="settings-section-title">Learning</div>
+
+          <div class="setting-row">
+            <div><div class="setting-label">Daily Goal</div><div class="setting-desc">Ayahs per day (1–50)</div></div>
+            <input type="number" class="setting-select" id="setDailyGoal" min="1" max="50" step="1" value="1" style="width:80px;min-width:80px;text-align:center;" />
+          </div>
+
+          <div class="setting-row">
+            <div><div class="setting-label">Direction</div><div class="setting-desc">Order of surahs</div></div>
+            <select class="setting-select" id="setDirection">
+              <option value="front">Front to back</option>
+              <option value="back">Back to front</option>
+            </select>
+          </div>
+
+          <div class="setting-row" style="flex-direction:column;align-items:stretch;">
+            <div class="setting-label">Current Position</div>
+            <div class="setting-desc" style="margin-bottom:8px;">Jump to a specific surah and ayah</div>
+            <div class="position-row">
+              <select class="setting-select" id="setSurah"></select>
+              <select class="setting-select" id="setAyah"></select>
+              <button class="setting-btn" id="jumpBtn" style="width:auto;margin:0;padding:8px 14px;">Go</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- DISPLAY -->
+        <div class="settings-section">
+          <div class="settings-section-title">Display</div>
+
+          <div class="setting-row">
+            <div class="setting-label">Theme</div>
+            <select class="setting-select" id="setTheme">
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-label">Font Size</div>
+            <select class="setting-select" id="setFontSize">
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large">Large</option>
+              <option value="xlarge">Extra Large</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-label">Tajweed Colors</div>
+            <label class="setting-toggle"><input type="checkbox" id="setTajweed" checked /><span class="toggle-track"></span></label>
+          </div>
+
+          <div class="setting-row">
+            <div><div class="setting-label">Translation</div><div class="setting-desc">Show English below ayah</div></div>
+            <label class="setting-toggle"><input type="checkbox" id="setTranslation" /><span class="toggle-track"></span></label>
+          </div>
+        </div>
+
+        <!-- AUDIO -->
+        <div class="settings-section">
+          <div class="settings-section-title">Audio</div>
+
+          <div class="setting-row">
+            <div class="setting-label">Reciter</div>
+            <select class="setting-select" id="setReciter">
+              <option value="ar.alafasy">Mishary Alafasy</option>
+              <option value="ar.abdurrahmaansudais">As-Sudais</option>
+              <option value="ar.hudhaify">Al-Hudhaify</option>
+              <option value="ar.abdulsamad">Abdul Samad</option>
+              <option value="ar.ahmedajamy">Ahmed al-Ajamy</option>
+              <option value="ar.muhammadayyoub">Muhammad Ayyoub</option>
+              <option value="ar.minshawi">Al-Minshawi</option>
+              <option value="ar.saoodshuraym">Ash-Shuraym</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-label">Default Speed</div>
+            <select class="setting-select" id="setSpeed">
+              <option value="0.5">0.5x</option>
+              <option value="0.75">0.75x</option>
+              <option value="1">1x</option>
+              <option value="1.25">1.25x</option>
+              <option value="1.5">1.5x</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- NOTIFICATIONS -->
+        <div class="settings-section">
+          <div class="settings-section-title">Notifications</div>
+
+          <div class="setting-row">
+            <div><div class="setting-label">Enable Reminders</div><div class="setting-desc">Get reminded to learn your ayahs</div></div>
+            <label class="setting-toggle"><input type="checkbox" id="setNotifications" /><span class="toggle-track"></span></label>
+          </div>
+
+          <div id="notifSettings" style="display:none;">
+            <div class="setting-row">
+              <div><div class="setting-label">Frequency</div><div class="setting-desc">How often to remind you</div></div>
+              <select class="setting-select" id="setNotifFrequency">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Biweekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+
+            <div class="setting-row">
+              <div><div class="setting-label">Reminders per Day</div><div class="setting-desc">How many times per notification day</div></div>
+              <select class="setting-select" id="setNotifCount">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+
+            <div class="setting-row" style="flex-direction:column;align-items:stretch;">
+              <div class="setting-label">Reminder Times</div>
+              <div class="setting-desc" style="margin-bottom:8px;">Set when you'd like to be reminded</div>
+              <div id="notifTimesContainer" class="notif-times-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACCOUNT -->
+        <div class="settings-section">
+          <div class="settings-section-title">Account</div>
+
+          <div class="setting-row" style="flex-direction:column;align-items:stretch;">
+            <div class="setting-label">Change Password</div>
+            <div class="setting-pw-form" id="changePwForm">
+              <input type="password" id="newPwInput" placeholder="New password" autocomplete="new-password" />
+              <input type="password" id="confirmPwInput" placeholder="Confirm password" autocomplete="new-password" />
+              <button class="setting-btn" id="changePwBtn">Update Password</button>
+            </div>
+          </div>
+
+          <div class="setting-row" style="flex-direction:column;align-items:stretch;gap:6px;">
+            <button class="setting-btn" id="signOutBtn">Sign Out</button>
+            <button class="setting-btn" id="resetBtn">Reset Progress</button>
+            <button class="setting-btn danger" id="deleteAccountBtn">Delete Account</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="today">Today</button>
+      <button class="tab-btn" data-tab="quran">Quran</button>
+    </div>
+
+    <div class="completed-banner" id="completedBanner">
+      <h2>Alhamdulillah</h2>
+      <p>You have completed all 6,236 ayahs.</p>
+    </div>
+
+    <!-- ===== TODAY TAB ===== -->
+    <div class="tab-content active" id="tabToday">
+      <!-- Surah Header -->
+      <div class="surah-header">
+        <div class="surah-name" id="surahName">Loading...</div>
+        <div class="surah-meta" id="surahMeta"></div>
+      </div>
+
+      <!-- Ayah Content -->
+      <div class="ayah-page">
+        <div class="ayah-page-inner">
+          <div class="ayah-text" id="ayahText">
+            <span class="loading-text">Loading...</span>
+          </div>
+          <div class="translation-text" id="translationText"></div>
+        </div>
+      </div>
+
+      <!-- Audio Player -->
+      <div class="player-bar">
+        <div class="player-progress">
+          <span class="player-time" id="currentTime">0:00</span>
+          <div class="scrubber" id="scrubber">
+            <div class="scrubber-fill" id="scrubberFill"></div>
+            <div class="scrubber-thumb" id="scrubberThumb"></div>
+          </div>
+          <span class="player-time" id="totalTime">0:00</span>
+        </div>
+        <div class="player-controls">
+          <button class="ctrl-btn repeat-btn" id="repeatBtn" title="Repeat ayah">
+            <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z" fill="currentColor"/></svg>
+            <span class="repeat-badge" id="repeatBadge"></span>
+          </button>
+          <button class="ctrl-btn" id="replayBtn" title="Replay">
+            <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+          </button>
+          <div class="play-wrap">
+            <svg class="play-ring hidden" id="playRing" viewBox="0 0 64 64">
+              <circle class="ring-bg" cx="32" cy="32" r="30"/>
+              <circle class="ring-fill" id="ringFill" cx="32" cy="32" r="30"/>
+            </svg>
+            <button class="play-main" id="playBtn" title="Play">
+              <svg viewBox="0 0 24 24" id="playIcon"><polygon points="6,3 20,12 6,21" /></svg>
+            </button>
+          </div>
+          <button class="ctrl-btn" id="speedBtn" title="Playback speed">
+            <svg viewBox="0 0 24 24"><text x="4" y="17" font-size="12" font-weight="700" fill="currentColor" font-family="Inter,sans-serif">1x</text></svg>
+          </button>
+        </div>
+        <div class="repeat-counter" id="repeatCounter"></div>
+        <div class="reciter-name">Mishary Rashid Alafasy</div>
+      </div>
+
+      <!-- Done / Learn -->
+      <div class="bottom-action">
+        <button class="learn-btn" id="learnBtn">I've learned this ayah</button>
+        <div class="done-message" id="doneMsg">
+          <p>Today's goal complete!</p>
+          <button class="continue-btn" id="continueBtn">Keep learning</button>
+        </div>
+        <p class="sync-status" id="syncStatus"></p>
+      </div>
+    </div>
+
+    <!-- ===== QURAN TAB ===== -->
+    <div class="tab-content" id="tabQuran">
+      <div class="quran-view" id="quranView">
+        <div class="quran-overall">
+          <div class="quran-overall-bar"><div class="quran-overall-fill" id="quranOverallFill"></div></div>
+          <span class="quran-overall-text" id="quranOverallText">0 of 6,236 ayahs learned</span>
+        </div>
+        <div id="surahList"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tajweed Tooltip -->
+  <div class="tj-tooltip" id="tjTooltip">
+    <div class="tj-tooltip-rule" id="tjRuleName"></div>
+    <div class="tj-tooltip-arabic" id="tjRuleArabic"></div>
+    <div class="tj-tooltip-desc" id="tjRuleDesc"></div>
+  </div>
+
+  <!-- Legend Panel -->
+  <div class="legend-overlay" id="legendOverlay"></div>
+  <div class="legend-panel" id="legendPanel">
+    <div class="legend-header">
+      <h3>Tajweed Color Guide</h3>
+      <button class="legend-close" id="legendClose">&times;</button>
+    </div>
+    <div class="legend-grid">
+      <div class="legend-item"><span class="legend-dot" style="background:#e74c3c"></span> Qalqalah</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#b040d0"></span> Ikhfa</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#e040a0"></span> Ikhfa Shafawi</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#2ecc71"></span> Idgham</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#1abc9c"></span> Idgham Shafawi</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#f39c12"></span> Iqlab</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#6b9bff"></span> Madd</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#5a7aff"></span> Madd Leen</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#40c4f7"></span> Madd Munfasil</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#3355cc"></span> Madd Muttasil</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#8a8a8a"></span> Hamzat ul Wasl</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#666"></span> Silent</div>
+    </div>
+  </div>
+
+  <audio id="audioPlayer" preload="none"></audio>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Daily Goal Completion Popup -->
+  <div class="goal-overlay" id="goalOverlay"></div>
+  <div class="goal-confetti" id="goalConfetti"></div>
+  <div class="goal-popup" id="goalPopup">
+    <div class="goal-popup-ring">
+      <svg viewBox="0 0 88 88">
+        <circle class="ring-track" cx="44" cy="44" r="40"/>
+        <circle class="ring-progress" id="goalRingProgress" cx="44" cy="44" r="40"/>
+      </svg>
+      <div class="ring-label" id="goalRingLabel"></div>
+    </div>
+    <h2>Masha'Allah!</h2>
+    <p class="goal-subtitle" id="goalSubtitle"></p>
+    <div class="goal-stats">
+      <div class="goal-stat">
+        <span class="goal-stat-num" id="goalDaysDone">0</span>
+        <span class="goal-stat-label">days done</span>
+      </div>
+      <div class="goal-stat">
+        <span class="goal-stat-num" id="goalDaysLeft">0</span>
+        <span class="goal-stat-label">days left</span>
+      </div>
+      <div class="goal-stat">
+        <span class="goal-stat-num" id="goalStreak">0</span>
+        <span class="goal-stat-label">streak</span>
+      </div>
+    </div>
+    <p class="goal-projection" id="goalProjection"></p>
+    <button class="goal-dismiss" id="goalDismiss">Done for Today</button>
+    <button class="goal-continue-link" id="goalContinueNow">Keep learning</button>
+  </div>
+
+  <script>
+    // ===== CONFIG =====
+    const SUPABASE_URL = 'https://zmkqhjitnijxafroznmz.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_KMvO-DqZIXOaGzxiJ5NRog_QokljpPK';
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const TOTAL = 6236;
+
+    const RECITERS = {
+      'ar.alafasy':              { name: 'Mishary Rashid Alafasy', bitrate: 128 },
+      'ar.abdurrahmaansudais':   { name: 'Abdurrahman As-Sudais',  bitrate: 192 },
+      'ar.hudhaify':             { name: 'Ali Al-Hudhaify',         bitrate: 128 },
+      'ar.abdulsamad':           { name: 'Abdul Samad',             bitrate: 64  },
+      'ar.ahmedajamy':           { name: 'Ahmed al-Ajamy',          bitrate: 128 },
+      'ar.muhammadayyoub':       { name: 'Muhammad Ayyoub',         bitrate: 128 },
+      'ar.minshawi':             { name: 'Mohamed Al-Minshawi',     bitrate: 128 },
+      'ar.saoodshuraym':         { name: 'Saud Ash-Shuraym',        bitrate: 64  }
+    };
+
+    const FONT_SIZES = {
+      small:  { font: 'clamp(1.2rem, 3.5vw, 1.6rem)', line: '2.2' },
+      medium: { font: 'clamp(1.5rem, 5vw, 2.2rem)',   line: '2.4' },
+      large:  { font: 'clamp(1.8rem, 6vw, 2.8rem)',   line: '2.6' },
+      xlarge: { font: 'clamp(2rem, 7.5vw, 3.4rem)',   line: '2.8' }
+    };
+
+    function getAudioBase() {
+      const r = RECITERS[settings.reciter] || { bitrate: 128 };
+      return 'https://cdn.islamic.network/quran/audio/' + r.bitrate + '/' + settings.reciter;
+    }
+
+    const TAJWEED_RULES = {
+      h: { name: 'Hamzat ul Wasl', arabic: '\u0647\u0645\u0632\u0629 \u0627\u0644\u0648\u0635\u0644', desc: 'A connecting hamza not pronounced when continuing from the previous word. Only pronounced at the start of speech.' },
+      l: { name: 'Lam Shamsiyyah', arabic: '\u0644\u0627\u0645 \u0634\u0645\u0633\u064a\u0629', desc: 'The lam in "Al" is silent and the following letter is doubled. Occurs before sun letters.' },
+      n: { name: 'Madd (Natural)', arabic: '\u0645\u062f \u0637\u0628\u064a\u0639\u064a', desc: 'A natural prolongation of 2 counts. Elongate the vowel sound naturally.' },
+      p: { name: 'Madd Leen', arabic: '\u0645\u062f \u0644\u064a\u0646', desc: 'A soft prolongation on waw or ya saakinah preceded by fathah. Extended 2-6 counts when stopping.' },
+      m: { name: 'Madd Muttasil', arabic: '\u0645\u062f \u0645\u062a\u0635\u0644', desc: 'Compulsory connected prolongation of 4-5 counts. Madd letter followed by hamza in the same word.' },
+      s: { name: 'Silent Letter', arabic: '\u062d\u0631\u0641 \u0644\u0627 \u064a\u064f\u0646\u0637\u064e\u0642', desc: 'This letter is written but not pronounced in recitation.' },
+      o: { name: 'Madd Munfasil', arabic: '\u0645\u062f \u0645\u0646\u0641\u0635\u0644', desc: 'Separated prolongation of 4-5 counts. Madd letter at end of word followed by hamza at start of next.' },
+      c: { name: 'Ikhfa Shafawi', arabic: '\u0625\u062e\u0641\u0627\u0621 \u0634\u0641\u0648\u064a', desc: 'Hiding of meem saakinah before ba. Light nasal sound (ghunnah) for 2 counts.' },
+      a: { name: 'Idgham', arabic: '\u0625\u062f\u063a\u0627\u0645', desc: 'Merging of noon saakinah or tanween into the following letter, often with a nasal sound.' },
+      q: { name: 'Qalqalah', arabic: '\u0642\u0644\u0642\u0644\u0629', desc: 'Echoing/bouncing sound on letters \u0642 \u0637 \u0628 \u062c \u062f when they carry sukoon.' },
+      f: { name: 'Ikhfa', arabic: '\u0625\u062e\u0641\u0627\u0621 \u062d\u0642\u064a\u0642\u064a', desc: 'Concealment of noon saakinah or tanween before certain letters, with nasal ghunnah of 2 counts.' },
+      w: { name: 'Idgham Shafawi', arabic: '\u0625\u062f\u063a\u0627\u0645 \u0634\u0641\u0648\u064a', desc: 'Meem saakinah merges into following meem with ghunnah of 2 counts.' },
+      e: { name: 'Iqlab', arabic: '\u0625\u0642\u0644\u0627\u0628', desc: 'Noon saakinah or tanween converts to meem sound before ba, with ghunnah of 2 counts.' },
+      g: { name: 'Ghunnah', arabic: '\u063a\u0646\u0651\u0629', desc: 'A nasal sound from the nose for 2 counts. Accompanies noon and meem with shaddah.' }
+    };
+
+    // ===== STATE =====
+    let currentUser = null;
+    let progress = { learned: 0, last_date: null, streak: 0, start_date: null };
+    let settings = { daily_goal: 1, reciter: 'ar.alafasy', font_size: 'medium', playback_speed: 1, tajweed_colors: true, theme: 'dark', direction: 'front', show_translation: false, notifications_enabled: false, notification_frequency: 'daily', notification_count: 1, notification_times: ['08:00'] };
+    let isAuthSignUp = false;
+    let justLearned = false;
+    let appEntered = false;
+    let progressLoaded = false;
+    let todayCount = 0;
+
+    function getToday() { return new Date().toISOString().slice(0, 10); }
+    function daysBetween(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
+    function fmtTime(s) { const m = Math.floor(s / 60); return m + ':' + String(Math.floor(s % 60)).padStart(2, '0'); }
+
+    // ===== TOAST NOTIFICATIONS =====
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      const icons = { success: '\u2713', error: '\u2717', info: '\u24D8' };
+      toast.innerHTML = '<span class="toast-icon">' + (icons[type] || '') + '</span><span>' + sanitizeText(message) + '</span>';
+      container.appendChild(toast);
+      setTimeout(() => { toast.remove(); }, 3500);
+    }
+
+    // ===== INPUT SANITIZATION =====
+    function sanitizeEmail(raw) {
+      // Trim, lowercase, strip anything that isn't a valid email character
+      return raw.trim().toLowerCase().replace(/[^a-z0-9.@+_\-]/g, '').slice(0, 254);
+    }
+
+    function sanitizeText(raw) {
+      // Strip HTML/script tags and control characters for safe display
+      return raw.replace(/[<>&"']/g, c => ({ '<':'&lt;', '>':'&gt;', '&':'&amp;', '"':'&quot;', "'":'&#39;' })[c])
+                .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+    }
+
+    function safeSetError(el, msg) { el.textContent = msg; }
+    function safeSetMessage(el, msg) { el.textContent = msg; }
+
+    // ===== AUTH =====
+    const authScreen = document.getElementById('authScreen');
+    const appScreen = document.getElementById('appScreen');
+
+    sb.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // Redirect to dedicated reset page (session is already active)
+        window.location.href = 'reset-password.html';
+        return;
+      }
+
+      if (session && !appEntered) {
+        currentUser = session.user;
+        enterApp();
+      } else if (!session) {
+        currentUser = null;
+        appEntered = false;
+        progressLoaded = false;
+        authScreen.style.display = 'flex';
+        appScreen.style.display = 'none';
+      }
+    });
+
+    // ===== PASSWORD VALIDATION =====
+    function validatePassword(pw) {
+      return {
+        len: pw.length >= 8,
+        upper: /[A-Z]/.test(pw),
+        lower: /[a-z]/.test(pw),
+        num: /[0-9]/.test(pw),
+        special: /[^A-Za-z0-9]/.test(pw)
+      };
+    }
+
+    function updatePasswordRules() {
+      const pw = document.getElementById('passwordInput').value;
+      const v = validatePassword(pw);
+      const rules = { ruleLen: v.len, ruleUpper: v.upper, ruleLower: v.lower, ruleNum: v.num, ruleSpecial: v.special };
+      for (const [id, pass] of Object.entries(rules)) {
+        const el = document.getElementById(id);
+        el.classList.toggle('pass', pass);
+        el.querySelector('.check').innerHTML = pass ? '&#10003;' : '&#10005;';
+      }
+      return Object.values(v).every(Boolean);
+    }
+
+    document.getElementById('passwordInput').addEventListener('input', function() {
+      if (isAuthSignUp) updatePasswordRules();
+    });
+
+    document.getElementById('authForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = sanitizeEmail(document.getElementById('emailInput').value);
+      const password = document.getElementById('passwordInput').value;
+      const errEl = document.getElementById('authError');
+      const msgEl = document.getElementById('authMessage');
+      const btn = document.getElementById('authSubmitBtn');
+      safeSetError(errEl, ''); safeSetMessage(msgEl, ''); btn.disabled = true;
+
+      // Validate email format
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showToast('Please enter a valid email address.', 'error');
+        btn.disabled = false;
+        return;
+      }
+
+      // Cap password length to prevent abuse
+      if (password.length > 128) {
+        showToast('Password must be 128 characters or fewer.', 'error');
+        btn.disabled = false;
+        return;
+      }
+
+      if (isAuthSignUp) {
+        if (!updatePasswordRules()) {
+          showToast('Password does not meet all requirements.', 'error');
+          btn.disabled = false;
+          return;
+        }
+        const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + window.location.pathname } });
+        btn.disabled = false;
+        if (error) showToast(error.message, 'error');
+        else if (!data.session) showToast('Check your email to confirm your account!', 'success');
+      } else {
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        btn.disabled = false;
+        if (error) showToast(error.message, 'error');
+      }
+    });
+
+    document.getElementById('authToggle').addEventListener('click', function() {
+      isAuthSignUp = !isAuthSignUp;
+      const btn = document.getElementById('authSubmitBtn');
+      const pwInput = document.getElementById('passwordInput');
+      const rulesEl = document.getElementById('passwordRules');
+      const forgotEl = document.getElementById('forgotBtn');
+
+      btn.textContent = isAuthSignUp ? 'Sign Up' : 'Sign In';
+      btn.className = 'auth-btn ' + (isAuthSignUp ? 'signup' : 'signin');
+      this.textContent = isAuthSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up";
+
+      // Switch autocomplete so password managers offer to generate on sign-up
+      pwInput.autocomplete = isAuthSignUp ? 'new-password' : 'current-password';
+
+      // Show password rules only on sign-up
+      rulesEl.classList.toggle('show', isAuthSignUp);
+      if (isAuthSignUp) updatePasswordRules();
+
+      // Hide forgot password on sign-up
+      forgotEl.style.display = isAuthSignUp ? 'none' : '';
+
+      document.getElementById('authError').textContent = '';
+      document.getElementById('authMessage').textContent = '';
+    });
+
+    // ===== FORGOT PASSWORD =====
+    document.getElementById('forgotBtn').addEventListener('click', async function() {
+      const email = sanitizeEmail(document.getElementById('emailInput').value);
+      const errEl = document.getElementById('authError');
+      const msgEl = document.getElementById('authMessage');
+      safeSetError(errEl, ''); safeSetMessage(msgEl, '');
+
+      if (!email) {
+        showToast('Enter your email above first.', 'error');
+        return;
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showToast('Please enter a valid email address.', 'error');
+        return;
+      }
+
+      this.disabled = true;
+      const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password.html'
+      });
+      this.disabled = false;
+
+      if (error) showToast(error.message, 'error');
+      else showToast('Password reset link sent! Check your email.', 'success');
+    });
+
+    document.getElementById('googleBtn').addEventListener('click', async function() {
+      try {
+        const { data, error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + window.location.pathname, skipBrowserRedirect: false } });
+        if (error) showToast(error.message, 'error');
+        else if (data?.url) window.location.href = data.url;
+      } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    });
+
+    document.getElementById('signOutBtn').addEventListener('click', async () => {
+      closeSettings();
+      await sb.auth.signOut();
+    });
+
+    // ===== SUPABASE SYNC =====
+    async function loadProgress() {
+      const { data, error } = await sb.from('user_progress').select('*').eq('id', currentUser.id).maybeSingle();
+      if (data) {
+        progress = { learned: data.learned, last_date: data.last_date, streak: data.streak, start_date: data.start_date };
+      } else if (!error) {
+        progress = { learned: 0, last_date: null, streak: 0, start_date: null };
+        sb.from('user_progress').upsert({ id: currentUser.id, learned: 0, streak: 0, last_date: null, start_date: null }, { onConflict: 'id', ignoreDuplicates: true }).then(() => {});
+      }
+      // Track how many we learned today
+      todayCount = progress.last_date === getToday() ? (parseInt(localStorage.getItem('todayCount-' + currentUser.id) || '0', 10)) : 0;
+    }
+
+    async function saveProgress() {
+      const el = document.getElementById('syncStatus');
+      el.textContent = 'Saving...';
+      const { error } = await sb.from('user_progress').update({ learned: progress.learned, last_date: progress.last_date, streak: progress.streak, start_date: progress.start_date, updated_at: new Date().toISOString() }).eq('id', currentUser.id);
+      el.textContent = error ? 'Sync error' : 'Saved';
+      setTimeout(() => { el.textContent = ''; }, 2000);
+    }
+
+    const SETTINGS_LOCAL_KEY = 'user-settings-';
+
+    async function loadSettings() {
+      // Load from localStorage first for instant startup
+      const cached = localStorage.getItem(SETTINGS_LOCAL_KEY + currentUser.id);
+      if (cached) {
+        try { Object.assign(settings, JSON.parse(cached)); } catch(e) {}
+      }
+
+      // Then fetch from Supabase and update
+      try {
+        const { data, error } = await sb.from('user_settings').select('*').eq('id', currentUser.id).maybeSingle();
+        if (data) {
+          settings = { daily_goal: data.daily_goal, reciter: data.reciter, font_size: data.font_size, playback_speed: data.playback_speed, tajweed_colors: data.tajweed_colors, theme: data.theme, direction: data.direction, show_translation: data.show_translation, notifications_enabled: data.notifications_enabled ?? false, notification_frequency: data.notification_frequency ?? 'daily', notification_count: data.notification_count ?? 1, notification_times: data.notification_times ?? ['08:00'] };
+          localStorage.setItem(SETTINGS_LOCAL_KEY + currentUser.id, JSON.stringify(settings));
+        } else if (!error) {
+          // First time — insert defaults
+          await sb.from('user_settings').insert({ id: currentUser.id, ...settings });
+          localStorage.setItem(SETTINGS_LOCAL_KEY + currentUser.id, JSON.stringify(settings));
+        }
+      } catch(e) {
+        console.error('loadSettings:', e);
+        // localStorage cache keeps us running offline
+      }
+    }
+
+    let _saveSettingsTimer = null;
+    function saveSettings() {
+      // Save to localStorage immediately
+      localStorage.setItem(SETTINGS_LOCAL_KEY + currentUser.id, JSON.stringify(settings));
+
+      // Debounce Supabase save
+      clearTimeout(_saveSettingsTimer);
+      _saveSettingsTimer = setTimeout(async () => {
+        try {
+          const { error } = await sb.from('user_settings').upsert({
+            id: currentUser.id,
+            ...settings,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+          if (error) console.error('saveSettings:', error.message);
+        } catch(e) {
+          console.error('saveSettings:', e);
+        }
+      }, 500);
+    }
+
+    function applySettings() {
+      // Theme
+      document.documentElement.setAttribute('data-theme', settings.theme);
+      // Font size
+      const fs = FONT_SIZES[settings.font_size] || FONT_SIZES.medium;
+      document.documentElement.style.setProperty('--ayah-font', fs.font);
+      document.documentElement.style.setProperty('--ayah-line', fs.line);
+      // Tajweed
+      document.getElementById('ayahText').classList.toggle('no-tajweed', !settings.tajweed_colors);
+      // Translation
+      document.getElementById('translationText').classList.toggle('show', settings.show_translation);
+      // Reciter name
+      const rec = RECITERS[settings.reciter];
+      document.querySelector('.reciter-name').textContent = rec ? rec.name : settings.reciter;
+      // Playback speed
+      const audio = document.getElementById('audioPlayer');
+      audio.playbackRate = settings.playback_speed;
+      const speedBtn = document.getElementById('speedBtn');
+      if (speedBtn) speedBtn.querySelector('svg text').textContent = settings.playback_speed + 'x';
+    }
+
+    // ===== APP =====
+    async function enterApp() {
+      if (appEntered) return;
+      appEntered = true;
+
+      authScreen.style.display = 'none';
+      appScreen.style.display = 'flex';
+
+      try {
+        await Promise.all([loadProgress(), loadSettings()]);
+        progressLoaded = true;
+      } catch (e) {
+        console.error('enterApp:', e);
+      }
+      applySettings();
+      populateSettingsUI();
+      render();
+      // Start notification scheduler if enabled
+      if (settings.notifications_enabled) scheduleNotifications();
+    }
+
+    function currentAyahNum() {
+      if (settings.direction === 'back') return Math.max(TOTAL - progress.learned, 1);
+      return Math.min(progress.learned + 1, TOTAL);
+    }
+
+    function render() {
+      const remaining = TOTAL - progress.learned;
+      const ayahNum = currentAyahNum();
+
+      document.getElementById('progressPill').textContent = progress.learned + ' / ' + TOTAL;
+
+      // Streak
+      const badge = document.getElementById('streakBadge');
+      badge.textContent = progress.streak >= 3 ? progress.streak + ' day streak' : '';
+
+      // Button
+      const btn = document.getElementById('learnBtn');
+      const doneMsg = document.getElementById('doneMsg');
+      const banner = document.getElementById('completedBanner');
+
+      if (remaining <= 0) {
+        btn.style.display = 'none'; doneMsg.style.display = 'none'; banner.style.display = 'block';
+      } else {
+        btn.style.display = ''; btn.disabled = false; doneMsg.style.display = 'none'; banner.style.display = 'none';
+      }
+
+      // Daily goal check: show celebration popup if goal met
+      if (justLearned && remaining > 0) {
+        if (todayCount >= settings.daily_goal) {
+          btn.style.display = 'none';
+          doneMsg.style.display = 'block';
+          showGoalPopup();
+        }
+        justLearned = false;
+      }
+
+      fetchAyah(ayahNum);
+    }
+
+    // ===== DAILY GOAL COMPLETION POPUP =====
+    function showGoalPopup() {
+      const overlay = document.getElementById('goalOverlay');
+      const popup = document.getElementById('goalPopup');
+
+      // Calculate stats based on total ayahs learned vs total in Quran
+      const learned = progress.learned;
+      const remaining = TOTAL - learned;
+      const goal = Math.max(settings.daily_goal, 1);
+      const daysDone = Math.floor(learned / goal);
+      const daysLeft = Math.ceil(remaining / goal);
+
+      // Update popup content
+      document.getElementById('goalSubtitle').textContent =
+        'You learned ' + todayCount + ' ayah' + (todayCount > 1 ? 's' : '') + ' today!';
+
+      document.getElementById('goalDaysDone').textContent = daysDone.toLocaleString();
+      document.getElementById('goalDaysLeft').textContent = daysLeft.toLocaleString();
+      document.getElementById('goalStreak').textContent = progress.streak;
+
+      // Projection text
+      if (daysLeft > 0) {
+        const finishDate = new Date();
+        finishDate.setDate(finishDate.getDate() + daysLeft);
+        const dateStr = finishDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        document.getElementById('goalProjection').textContent =
+          'At ' + goal + ' ayah' + (goal > 1 ? 's' : '') +
+          '/day, you\'ll complete the Quran by ' + dateStr;
+      } else {
+        document.getElementById('goalProjection').textContent = '';
+      }
+
+      // Ring label & animation
+      const ringLabel = document.getElementById('goalRingLabel');
+      const ringProgress = document.getElementById('goalRingProgress');
+      const circumference = 2 * Math.PI * 40; // r=40
+      ringLabel.textContent = todayCount + '/' + settings.daily_goal;
+
+      // Reset ring
+      ringProgress.style.transition = 'none';
+      ringProgress.style.strokeDasharray = circumference;
+      ringProgress.style.strokeDashoffset = circumference;
+
+      // Show popup
+      overlay.style.display = 'block';
+      popup.style.display = 'block';
+
+      // Animate ring after a small delay
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          ringProgress.style.transition = 'stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1)';
+          const pct = Math.min(todayCount / settings.daily_goal, 1);
+          ringProgress.style.strokeDashoffset = circumference * (1 - pct);
+        });
+      });
+
+      // Spawn confetti
+      spawnConfetti();
+    }
+
+    function hideGoalPopup() {
+      document.getElementById('goalOverlay').style.display = 'none';
+      document.getElementById('goalPopup').style.display = 'none';
+      document.getElementById('goalConfetti').innerHTML = '';
+    }
+
+    function spawnConfetti() {
+      const container = document.getElementById('goalConfetti');
+      container.innerHTML = '';
+      const colors = ['#c9a84c', '#e74c3c', '#2ecc71', '#3498db', '#9b59b6', '#f39c12', '#e67e22', '#1abc9c'];
+      const screenW = window.innerWidth;
+      const screenH = window.innerHeight;
+      for (let i = 0; i < 60; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.left = (Math.random() * screenW) + 'px';
+        piece.style.width = (5 + Math.random() * 6) + 'px';
+        piece.style.height = (10 + Math.random() * 10) + 'px';
+        piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        piece.style.setProperty('--fall', (screenH + 40) + 'px');
+        piece.style.setProperty('--cr', (Math.random() * 1080 - 540) + 'deg');
+        piece.style.setProperty('--delay', (Math.random() * 0.8) + 's');
+        piece.style.setProperty('--duration', (1.5 + Math.random() * 1.5) + 's');
+        container.appendChild(piece);
+      }
+    }
+
+    document.getElementById('goalDismiss').addEventListener('click', hideGoalPopup);
+    document.getElementById('goalOverlay').addEventListener('click', hideGoalPopup);
+    document.getElementById('goalContinueNow').addEventListener('click', function() {
+      hideGoalPopup();
+      continueNext();
+    });
+
+    // ===== LEARN =====
+    async function markLearned() {
+      const today = getToday();
+      if (!progress.start_date) progress.start_date = today;
+      if (progress.last_date !== today) {
+        if (progress.last_date && daysBetween(progress.last_date, today) === 1) progress.streak++;
+        else progress.streak = 1;
+        todayCount = 0;
+      }
+      progress.learned++;
+      progress.last_date = today;
+      todayCount++;
+      localStorage.setItem('todayCount-' + currentUser.id, todayCount);
+      justLearned = true;
+      render();
+      await saveProgress();
+    }
+
+    function continueNext() {
+      justLearned = false;
+      render();
+    }
+
+    document.getElementById('learnBtn').addEventListener('click', markLearned);
+    document.getElementById('continueBtn').addEventListener('click', continueNext);
+
+    document.getElementById('resetBtn').addEventListener('click', async function() {
+      if (confirm('Reset all progress? This cannot be undone.')) {
+        progress = { learned: 0, last_date: null, streak: 0, start_date: null };
+        todayCount = 0;
+        closeSettings();
+        render();
+        await saveProgress();
+        showToast('Progress has been reset.', 'info');
+      }
+    });
+
+    // ===== TAJWEED PARSER =====
+    function parseTajweed(raw) {
+      let html = '', i = 0;
+      while (i < raw.length) {
+        if (raw[i] === '[') {
+          const rc = raw[i + 1]; let j = i + 2;
+          if (raw[j] === ':') { j++; while (j < raw.length && raw[j] !== '[') j++; }
+          if (raw[j] === '[') {
+            j++; let depth = 1, content = '';
+            while (j < raw.length && depth > 0) { if (raw[j] === '[') depth++; else if (raw[j] === ']') depth--; if (depth > 0) content += raw[j]; j++; }
+            if (j < raw.length && raw[j] === ']') j++;
+            const k = rc.toLowerCase();
+            html += TAJWEED_RULES[k] ? '<span class="tj tj-' + k + '" data-rule="' + k + '">' + esc(content) + '</span>' : esc(content);
+            i = j;
+          } else { html += esc(raw[i]); i++; }
+        } else { html += esc(raw[i]); i++; }
+      }
+      return html;
+    }
+
+    function esc(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // ===== FETCH AYAH (with local cache) =====
+    const AYAH_CACHE_KEY = 'ayah-cache-';
+    const TRANS_CACHE_KEY = 'trans-cache-';
+
+    async function fetchAyah(num) {
+      const textEl = document.getElementById('ayahText');
+      const nameEl = document.getElementById('surahName');
+      const metaEl = document.getElementById('surahMeta');
+
+      const cached = localStorage.getItem(AYAH_CACHE_KEY + num);
+      if (cached) {
+        const data = JSON.parse(cached);
+        displayAyah(data, textEl, nameEl, metaEl, num);
+        return;
+      }
+
+      textEl.innerHTML = '<span class="loading-text">Loading...</span>';
+
+      try {
+        const { data, error } = await sb.from('ayahs').select('*').eq('number', num).single();
+        if (error) throw new Error(error.message);
+        localStorage.setItem(AYAH_CACHE_KEY + num, JSON.stringify(data));
+        displayAyah(data, textEl, nameEl, metaEl, num);
+        prefetchAyahs(num + 1, 5);
+      } catch (err) {
+        try {
+          const resp = await fetch('https://api.alquran.cloud/v1/ayah/' + num + '/quran-tajweed');
+          const json = await resp.json();
+          const d = json.data;
+          const data = { number: d.number, surah_name: d.surah.name, surah_english: d.surah.englishName, ayah_in_surah: d.numberInSurah, text_tajweed: d.text };
+          localStorage.setItem(AYAH_CACHE_KEY + num, JSON.stringify(data));
+          displayAyah(data, textEl, nameEl, metaEl, num);
+        } catch (err2) {
+          textEl.innerHTML = '<span class="error-text">Could not load ayah</span>';
+          nameEl.textContent = ''; metaEl.textContent = 'Ayah #' + num;
+        }
+      }
+    }
+
+    function displayAyah(data, textEl, nameEl, metaEl, num) {
+      nameEl.textContent = data.surah_name;
+      metaEl.textContent = data.surah_english + '  \u00B7  Ayah ' + data.ayah_in_surah;
+      textEl.innerHTML = parseTajweed(data.text_tajweed);
+
+      const audio = document.getElementById('audioPlayer');
+      audio.src = getAudioBase() + '/' + num + '.mp3';
+      audio.playbackRate = settings.playback_speed;
+      audio.load();
+
+      // Translation
+      if (settings.show_translation) fetchTranslation(num);
+      else document.getElementById('translationText').textContent = '';
+    }
+
+    async function fetchTranslation(num) {
+      const el = document.getElementById('translationText');
+      const cached = localStorage.getItem(TRANS_CACHE_KEY + num);
+      if (cached) { el.textContent = cached; return; }
+
+      el.textContent = 'Loading translation...';
+      try {
+        const resp = await fetch('https://api.alquran.cloud/v1/ayah/' + num + '/en.sahih');
+        const json = await resp.json();
+        const text = json.data.text;
+        localStorage.setItem(TRANS_CACHE_KEY + num, text);
+        el.textContent = text;
+      } catch (e) {
+        el.textContent = 'Translation unavailable';
+      }
+    }
+
+    async function prefetchAyahs(start, count) {
+      const end = Math.min(start + count - 1, TOTAL);
+      const needed = [];
+      for (let i = start; i <= end; i++) {
+        if (!localStorage.getItem(AYAH_CACHE_KEY + i)) needed.push(i);
+      }
+      if (needed.length === 0) return;
+      try {
+        const { data } = await sb.from('ayahs').select('*').in('number', needed);
+        if (data) data.forEach(a => localStorage.setItem(AYAH_CACHE_KEY + a.number, JSON.stringify(a)));
+      } catch (e) { /* silent */ }
+    }
+
+    // ===== AUDIO PLAYER =====
+    (function() {
+      const audio = document.getElementById('audioPlayer');
+      const playBtn = document.getElementById('playBtn');
+      const playIcon = document.getElementById('playIcon');
+      const replayBtn = document.getElementById('replayBtn');
+      const speedBtn = document.getElementById('speedBtn');
+      const scrubber = document.getElementById('scrubber');
+      const fill = document.getElementById('scrubberFill');
+      const thumb = document.getElementById('scrubberThumb');
+      const curTimeEl = document.getElementById('currentTime');
+      const totTimeEl = document.getElementById('totalTime');
+      const playRing = document.getElementById('playRing');
+      const ringFill = document.getElementById('ringFill');
+      const CIRCUMFERENCE = 2 * Math.PI * 30; // r=30
+
+      const playSvg = '<polygon points="6,3 20,12 6,21" />';
+      const pauseSvg = '<rect x="5" y="3" width="5" height="18"/><rect x="14" y="3" width="5" height="18"/>';
+
+      const repeatBtn = document.getElementById('repeatBtn');
+      const repeatBadge = document.getElementById('repeatBadge');
+      const repeatCounter = document.getElementById('repeatCounter');
+      const repeatOptions = [0, 3, 5, 7, 9, 11]; // 0 = off
+      let repeatTotal = 0;
+      let repeatCurrent = 0;
+      let pendingPlay = false;
+      let audioReady = false;
+
+      function updateRepeatUI() {
+        if (repeatTotal === 0) {
+          repeatBtn.classList.remove('active');
+          repeatBadge.textContent = '';
+          repeatCounter.textContent = '';
+        } else {
+          repeatBtn.classList.add('active');
+          repeatBadge.textContent = repeatTotal;
+          repeatCounter.textContent = 'Repeat ' + repeatCurrent + ' / ' + repeatTotal;
+        }
+      }
+
+      repeatBtn.addEventListener('click', () => {
+        let idx = repeatOptions.indexOf(repeatTotal);
+        idx = (idx + 1) % repeatOptions.length;
+        repeatTotal = repeatOptions[idx];
+        repeatCurrent = 0;
+        updateRepeatUI();
+      });
+
+      function setRingProgress(pct) {
+        // pct 0-1, 1 = full circle
+        const offset = CIRCUMFERENCE * (1 - pct);
+        ringFill.style.strokeDashoffset = offset;
+      }
+
+      function showRing() {
+        playRing.classList.remove('hidden');
+        playRing.classList.remove('loaded');
+        setRingProgress(0);
+      }
+
+      function hideRing() {
+        playRing.classList.add('loaded');
+        setTimeout(() => { playRing.classList.add('hidden'); }, 400);
+      }
+
+      // Track buffering progress
+      audio.addEventListener('progress', () => {
+        if (!audio.duration || audioReady) return;
+        if (audio.buffered.length > 0) {
+          const buffered = audio.buffered.end(audio.buffered.length - 1);
+          setRingProgress(buffered / audio.duration);
+        }
+      });
+
+      audio.addEventListener('loadstart', () => {
+        audioReady = false;
+        showRing();
+        playBtn.classList.add('loading');
+      });
+
+      audio.addEventListener('canplaythrough', () => {
+        audioReady = true;
+        setRingProgress(1);
+        hideRing();
+        playBtn.classList.remove('loading');
+        if (pendingPlay) {
+          pendingPlay = false;
+          audio.play();
+          playIcon.innerHTML = pauseSvg;
+        }
+      });
+
+      audio.addEventListener('canplay', () => {
+        // Partial ready — update ring but keep loading state if not fully buffered
+        if (!audioReady && audio.buffered.length > 0 && audio.duration) {
+          setRingProgress(audio.buffered.end(audio.buffered.length - 1) / audio.duration);
+        }
+      });
+
+      audio.addEventListener('error', () => {
+        playBtn.classList.remove('loading');
+        playRing.classList.add('hidden');
+        pendingPlay = false;
+        if (audio.src && audio.src !== window.location.href) {
+          showToast('Could not load audio for this reciter.', 'error');
+        }
+      });
+
+      playBtn.addEventListener('click', () => {
+        if (!audioReady && audio.src && audio.readyState < 3) {
+          pendingPlay = !pendingPlay;
+          if (pendingPlay) playBtn.classList.add('loading');
+          else playBtn.classList.remove('loading');
+          return;
+        }
+        if (audio.paused) {
+          if (audio.ended || audio.currentTime === 0) { repeatCurrent = 0; updateRepeatUI(); }
+          audio.play();
+          playIcon.innerHTML = pauseSvg;
+        } else {
+          audio.pause();
+          playIcon.innerHTML = playSvg;
+        }
+      });
+
+      audio.addEventListener('ended', () => {
+        if (repeatTotal > 0 && repeatCurrent < repeatTotal) {
+          repeatCurrent++;
+          updateRepeatUI();
+          if (repeatCurrent < repeatTotal) {
+            audio.currentTime = 0;
+            audio.play();
+            return;
+          }
+        }
+        playIcon.innerHTML = playSvg;
+      });
+      audio.addEventListener('timeupdate', () => {
+        if (!audio.duration) return;
+        const pct = (audio.currentTime / audio.duration) * 100;
+        fill.style.width = pct + '%'; thumb.style.left = pct + '%';
+        curTimeEl.textContent = fmtTime(audio.currentTime);
+      });
+      audio.addEventListener('loadedmetadata', () => { totTimeEl.textContent = fmtTime(audio.duration); });
+
+      scrubber.addEventListener('click', (e) => {
+        if (!audio.duration) return;
+        const rect = scrubber.getBoundingClientRect();
+        audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+      });
+
+      replayBtn.addEventListener('click', () => { repeatCurrent = 0; updateRepeatUI(); audio.currentTime = 0; audio.play(); playIcon.innerHTML = pauseSvg; });
+
+      const speeds = [0.5, 0.75, 1, 1.25, 1.5];
+      speedBtn.addEventListener('click', () => {
+        let idx = speeds.indexOf(audio.playbackRate);
+        idx = (idx + 1) % speeds.length;
+        audio.playbackRate = speeds[idx];
+        settings.playback_speed = speeds[idx];
+        speedBtn.querySelector('svg text').textContent = speeds[idx] + 'x';
+        document.getElementById('setSpeed').value = speeds[idx];
+        saveSettings();
+      });
+    })();
+
+    // ===== TAJWEED TOOLTIP =====
+    (function() {
+      const tooltip = document.getElementById('tjTooltip');
+      document.getElementById('ayahText').addEventListener('click', function(e) {
+        const span = e.target.closest('.tj');
+        if (!span) { tooltip.classList.remove('show'); return; }
+        const rule = TAJWEED_RULES[span.dataset.rule];
+        if (!rule) return;
+        document.getElementById('tjRuleName').textContent = rule.name;
+        document.getElementById('tjRuleName').style.color = getComputedStyle(span).color;
+        document.getElementById('tjRuleArabic').textContent = rule.arabic;
+        document.getElementById('tjRuleDesc').textContent = rule.desc;
+        tooltip.classList.add('show');
+        const rect = span.getBoundingClientRect();
+        let top = rect.bottom + 8, left = rect.left + rect.width / 2 - 140;
+        if (left < 8) left = 8;
+        if (left + 280 > window.innerWidth) left = window.innerWidth - 288;
+        if (top + 150 > window.innerHeight) top = rect.top - tooltip.offsetHeight - 8;
+        tooltip.style.top = top + 'px'; tooltip.style.left = left + 'px';
+      });
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.tj') && !e.target.closest('.tj-tooltip')) tooltip.classList.remove('show');
+      });
+    })();
+
+    // ===== LEGEND =====
+    document.getElementById('legendBtn').addEventListener('click', () => {
+      document.getElementById('legendPanel').classList.add('show');
+      document.getElementById('legendOverlay').classList.add('show');
+    });
+    function closeLegend() {
+      document.getElementById('legendPanel').classList.remove('show');
+      document.getElementById('legendOverlay').classList.remove('show');
+    }
+    document.getElementById('legendClose').addEventListener('click', closeLegend);
+    document.getElementById('legendOverlay').addEventListener('click', closeLegend);
+
+    // ===== SETTINGS PANEL =====
+    function openSettings() {
+      document.getElementById('settingsPanel').classList.add('show');
+      document.getElementById('settingsOverlay').classList.add('show');
+    }
+    function closeSettings() {
+      document.getElementById('settingsPanel').classList.remove('show');
+      document.getElementById('settingsOverlay').classList.remove('show');
+    }
+
+    document.getElementById('settingsBtn').addEventListener('click', openSettings);
+    document.getElementById('settingsClose').addEventListener('click', closeSettings);
+    document.getElementById('settingsOverlay').addEventListener('click', closeSettings);
+
+    function populateSettingsUI() {
+      document.getElementById('setDailyGoal').value = settings.daily_goal;
+      document.getElementById('setDirection').value = settings.direction;
+      document.getElementById('setTheme').value = settings.theme;
+      document.getElementById('setFontSize').value = settings.font_size;
+      document.getElementById('setTajweed').checked = settings.tajweed_colors;
+      document.getElementById('setTranslation').checked = settings.show_translation;
+      document.getElementById('setReciter').value = settings.reciter;
+      document.getElementById('setSpeed').value = settings.playback_speed;
+
+      // Notifications
+      document.getElementById('setNotifications').checked = settings.notifications_enabled;
+      document.getElementById('setNotifFrequency').value = settings.notification_frequency;
+      document.getElementById('setNotifCount').value = settings.notification_count;
+      toggleNotifSettings();
+      buildNotifTimeInputs();
+
+      // Populate surah picker
+      const surahSel = document.getElementById('setSurah');
+      if (surahSel.options.length === 0) {
+        for (let i = 0; i < SURAHS.length; i++) {
+          const o = document.createElement('option');
+          o.value = i;
+          o.textContent = SURAHS[i][0] + '. ' + SURAHS[i][1];
+          surahSel.appendChild(o);
+        }
+      }
+      updateAyahPicker();
+    }
+
+    function updateAyahPicker() {
+      const surahIdx = parseInt(document.getElementById('setSurah').value, 10);
+      const ayahSel = document.getElementById('setAyah');
+      const count = SURAHS[surahIdx][3];
+      ayahSel.innerHTML = '';
+      for (let a = 1; a <= count; a++) {
+        const o = document.createElement('option');
+        o.value = a;
+        o.textContent = 'Ayah ' + a;
+        ayahSel.appendChild(o);
+      }
+    }
+
+    document.getElementById('setSurah').addEventListener('change', updateAyahPicker);
+
+    // Setting change handlers
+    document.getElementById('setDailyGoal').addEventListener('input', function() {
+      // Strip non-digits
+      this.value = this.value.replace(/[^0-9]/g, '');
+      let val = parseInt(this.value, 10);
+      if (isNaN(val) || val < 1) return;
+      if (val > 50) { val = 50; this.value = 50; }
+      settings.daily_goal = val;
+      saveSettings();
+    });
+
+    document.getElementById('setDailyGoal').addEventListener('blur', function() {
+      let val = parseInt(this.value, 10);
+      if (isNaN(val) || val < 1) { val = 1; this.value = 1; }
+      if (val > 50) { val = 50; this.value = 50; }
+      settings.daily_goal = val;
+      saveSettings();
+    });
+
+    document.getElementById('setDirection').addEventListener('change', function() {
+      settings.direction = this.value;
+      saveSettings();
+      render();
+    });
+
+    document.getElementById('setTheme').addEventListener('change', function() {
+      settings.theme = this.value;
+      applySettings();
+      saveSettings();
+    });
+
+    document.getElementById('setFontSize').addEventListener('change', function() {
+      settings.font_size = this.value;
+      applySettings();
+      saveSettings();
+    });
+
+    document.getElementById('setTajweed').addEventListener('change', function() {
+      settings.tajweed_colors = this.checked;
+      applySettings();
+      saveSettings();
+    });
+
+    document.getElementById('setTranslation').addEventListener('change', function() {
+      settings.show_translation = this.checked;
+      applySettings();
+      saveSettings();
+      if (this.checked) fetchTranslation(currentAyahNum());
+      else document.getElementById('translationText').textContent = '';
+    });
+
+    document.getElementById('setReciter').addEventListener('change', function() {
+      settings.reciter = this.value;
+      applySettings();
+      saveSettings();
+      // Reload current audio
+      const audio = document.getElementById('audioPlayer');
+      audio.src = getAudioBase() + '/' + currentAyahNum() + '.mp3';
+      audio.load();
+    });
+
+    document.getElementById('setSpeed').addEventListener('change', function() {
+      settings.playback_speed = parseFloat(this.value);
+      document.getElementById('audioPlayer').playbackRate = settings.playback_speed;
+      document.getElementById('speedBtn').querySelector('svg text').textContent = this.value + 'x';
+      saveSettings();
+    });
+
+    // ===== NOTIFICATIONS =====
+    let _notifInterval = null;
+    let _notifFiredTimes = {}; // track which times fired today to avoid dupes
+
+    function parse24(timeStr) {
+      const parts = (timeStr || '08:00').split(':');
+      return { h: parseInt(parts[0], 10), m: parseInt(parts[1], 10) || 0 };
+    }
+
+    function to12(h24) {
+      const ampm = h24 < 12 ? 'AM' : 'PM';
+      const h = h24 === 0 ? 12 : h24 > 12 ? h24 - 12 : h24;
+      return { h, ampm };
+    }
+
+    function to24(h12, m, ampm) {
+      let h = h12;
+      if (ampm === 'AM' && h === 12) h = 0;
+      else if (ampm === 'PM' && h !== 12) h += 12;
+      return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+    }
+
+    function buildNotifTimeInputs() {
+      const container = document.getElementById('notifTimesContainer');
+      container.innerHTML = '';
+      const count = settings.notification_count;
+      while (settings.notification_times.length < count) {
+        settings.notification_times.push('08:00');
+      }
+      if (settings.notification_times.length > count) {
+        settings.notification_times = settings.notification_times.slice(0, count);
+      }
+
+      for (let i = 0; i < count; i++) {
+        const t = parse24(settings.notification_times[i]);
+        const t12 = to12(t.h);
+
+        const row = document.createElement('div');
+        row.className = 'notif-time-row';
+        row.innerHTML =
+          '<input class="notif-time-input" data-idx="' + i + '" data-field="h" type="text" inputmode="numeric" maxlength="2" value="' + t12.h + '" />' +
+          '<span class="notif-time-sep">:</span>' +
+          '<input class="notif-time-input" data-idx="' + i + '" data-field="m" type="text" inputmode="numeric" maxlength="2" value="' + String(t.m).padStart(2, '0') + '" />' +
+          '<div class="notif-ampm-group">' +
+            '<button class="notif-ampm-btn' + (t12.ampm === 'AM' ? ' active' : '') + '" data-idx="' + i + '" data-val="AM">AM</button>' +
+            '<button class="notif-ampm-btn' + (t12.ampm === 'PM' ? ' active' : '') + '" data-idx="' + i + '" data-val="PM">PM</button>' +
+          '</div>';
+        container.appendChild(row);
+      }
+
+      // Event delegation
+      container.addEventListener('input', function(e) {
+        if (!e.target.classList.contains('notif-time-input')) return;
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+      });
+
+      container.addEventListener('change', function(e) {
+        if (!e.target.classList.contains('notif-time-input')) return;
+        const idx = parseInt(e.target.dataset.idx, 10);
+        const row = e.target.closest('.notif-time-row');
+        const hInput = row.querySelector('[data-field="h"]');
+        const mInput = row.querySelector('[data-field="m"]');
+        const activeAmpm = row.querySelector('.notif-ampm-btn.active');
+
+        let h = parseInt(hInput.value, 10) || 12;
+        let m = parseInt(mInput.value, 10) || 0;
+        if (h < 1) h = 1; if (h > 12) h = 12;
+        if (m < 0) m = 0; if (m > 59) m = 59;
+        hInput.value = h;
+        mInput.value = String(m).padStart(2, '0');
+
+        settings.notification_times[idx] = to24(h, m, activeAmpm.dataset.val);
+        saveSettings();
+        scheduleNotifications();
+      });
+
+      container.addEventListener('click', function(e) {
+        if (!e.target.classList.contains('notif-ampm-btn')) return;
+        const idx = parseInt(e.target.dataset.idx, 10);
+        const row = e.target.closest('.notif-time-row');
+        const hInput = row.querySelector('[data-field="h"]');
+        const mInput = row.querySelector('[data-field="m"]');
+
+        // Toggle active state on both buttons in the group
+        row.querySelectorAll('.notif-ampm-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+
+        const h = parseInt(hInput.value, 10) || 12;
+        const m = parseInt(mInput.value, 10) || 0;
+        settings.notification_times[idx] = to24(h, m, e.target.dataset.val);
+        saveSettings();
+        scheduleNotifications();
+      });
+    }
+
+    function toggleNotifSettings() {
+      document.getElementById('notifSettings').style.display = settings.notifications_enabled ? '' : 'none';
+    }
+
+    async function requestNotifPermission() {
+      if (!('Notification' in window)) {
+        showToast('Your browser doesn\'t support notifications.', 'error');
+        return false;
+      }
+      if (Notification.permission === 'granted') return true;
+      if (Notification.permission === 'denied') {
+        showToast('Notifications are blocked. Please enable them in your browser settings.', 'error');
+        return false;
+      }
+      const result = await Notification.requestPermission();
+      if (result === 'granted') return true;
+      showToast('Notification permission was not granted.', 'error');
+      return false;
+    }
+
+    function getNextAyahText() {
+      const num = currentAyahNum();
+      const cached = localStorage.getItem(AYAH_CACHE_KEY + num);
+      if (cached) {
+        const data = JSON.parse(cached);
+        // Strip tajweed tags for plain text
+        const plain = data.text_tajweed.replace(/\[[a-z]:?[^\]]*\]/g, '').replace(/\[/g, '').replace(/\]/g, '');
+        return { surah: data.surah_english, ayahNum: data.ayah_in_surah, text: plain };
+      }
+      return null;
+    }
+
+    function fireNotification() {
+      if (Notification.permission !== 'granted') return;
+      const remaining = TOTAL - progress.learned;
+      if (remaining <= 0) return;
+
+      const ayahInfo = getNextAyahText();
+      let title = 'Time to learn your ayah!';
+      let body = 'You have ' + settings.daily_goal + ' ayah' + (settings.daily_goal > 1 ? 's' : '') + ' to learn today.';
+
+      if (ayahInfo) {
+        title = ayahInfo.surah + ' - Ayah ' + ayahInfo.ayahNum;
+        // Truncate long ayah text for notification
+        body = ayahInfo.text.length > 120 ? ayahInfo.text.slice(0, 120) + '...' : ayahInfo.text;
+      }
+
+      const notif = new Notification(title, {
+        body: body,
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="80">📖</text></svg>',
+        tag: 'ayah-reminder-' + Date.now(),
+        dir: 'rtl',
+        requireInteraction: false,
+      });
+
+      notif.onclick = function() {
+        window.focus();
+        notif.close();
+      };
+    }
+
+    function isNotificationDay() {
+      const freq = settings.notification_frequency || 'daily';
+      if (freq === 'daily') return true;
+
+      // Use start_date as anchor, fall back to today
+      const anchor = progress.start_date ? new Date(progress.start_date) : new Date();
+      const now = new Date();
+      const diffDays = Math.floor((now - anchor) / 86400000);
+
+      if (freq === 'weekly') return diffDays % 7 === 0;
+      if (freq === 'biweekly') return diffDays % 14 === 0;
+      if (freq === 'monthly') return now.getDate() === anchor.getDate();
+      return true;
+    }
+
+    function scheduleNotifications() {
+      clearInterval(_notifInterval);
+      _notifFiredTimes = {};
+
+      if (!settings.notifications_enabled || !settings.notification_times.length) return;
+
+      // Check every 30 seconds
+      _notifInterval = setInterval(() => {
+        if (!isNotificationDay()) return;
+
+        const now = new Date();
+        const currentTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+        const todayKey = getToday();
+
+        for (const time of settings.notification_times) {
+          const firedKey = todayKey + '-' + time;
+          if (currentTime === time && !_notifFiredTimes[firedKey]) {
+            _notifFiredTimes[firedKey] = true;
+            fireNotification();
+          }
+        }
+
+        // Reset tracking at midnight
+        if (currentTime === '00:00') {
+          _notifFiredTimes = {};
+        }
+      }, 30000);
+    }
+
+    document.getElementById('setNotifications').addEventListener('change', async function() {
+      if (this.checked) {
+        const granted = await requestNotifPermission();
+        if (!granted) {
+          this.checked = false;
+          return;
+        }
+        settings.notifications_enabled = true;
+      } else {
+        settings.notifications_enabled = false;
+      }
+      toggleNotifSettings();
+      saveSettings();
+      scheduleNotifications();
+    });
+
+    document.getElementById('setNotifFrequency').addEventListener('change', function() {
+      settings.notification_frequency = this.value;
+      saveSettings();
+      scheduleNotifications();
+    });
+
+    document.getElementById('setNotifCount').addEventListener('change', function() {
+      settings.notification_count = parseInt(this.value, 10);
+      buildNotifTimeInputs();
+      saveSettings();
+      scheduleNotifications();
+    });
+
+    // Jump to position
+    document.getElementById('jumpBtn').addEventListener('click', async function() {
+      const surahIdx = parseInt(document.getElementById('setSurah').value, 10);
+      const ayahInSurah = parseInt(document.getElementById('setAyah').value, 10);
+      const globalAyah = SURAH_STARTS[surahIdx] + ayahInSurah - 1;
+
+      if (settings.direction === 'back') {
+        progress.learned = TOTAL - globalAyah;
+      } else {
+        progress.learned = globalAyah - 1;
+      }
+      todayCount = 0;
+      localStorage.setItem('todayCount-' + currentUser.id, '0');
+      render();
+      await saveProgress();
+      showToast('Jumped to ' + SURAHS[surahIdx][1] + ', Ayah ' + ayahInSurah, 'success');
+    });
+
+    // Change password
+    document.getElementById('changePwBtn').addEventListener('click', async function() {
+      const newPw = document.getElementById('newPwInput').value;
+      const confirmPw = document.getElementById('confirmPwInput').value;
+
+      if (newPw.length > 128) { showToast('Password must be 128 characters or fewer.', 'error'); return; }
+
+      const v = validatePassword(newPw);
+      if (!Object.values(v).every(Boolean)) {
+        showToast('Password needs: 8+ chars, uppercase, lowercase, number, special character.', 'error');
+        return;
+      }
+      if (newPw !== confirmPw) { showToast('Passwords do not match.', 'error'); return; }
+
+      this.disabled = true;
+      const { error } = await sb.auth.updateUser({ password: newPw });
+      this.disabled = false;
+
+      if (error) showToast(error.message, 'error');
+      else {
+        showToast('Password updated successfully!', 'success');
+        document.getElementById('newPwInput').value = '';
+        document.getElementById('confirmPwInput').value = '';
+      }
+    });
+
+    // Delete account
+    document.getElementById('deleteAccountBtn').addEventListener('click', async function() {
+      if (!confirm('Permanently delete your account and all data? This cannot be undone.')) return;
+      if (!confirm('Are you absolutely sure?')) return;
+
+      try {
+        const { error } = await sb.rpc('delete_own_account');
+        if (error) throw error;
+        await sb.auth.signOut();
+        showToast('Account deleted.', 'info');
+      } catch (e) {
+        showToast('Could not delete account: ' + e.message, 'error');
+      }
+    });
+
+    // ===== SURAH DATA [number, englishName, arabicName, ayahCount] =====
+    const SURAHS = [[1,"Al-Faatiha","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0671\u0644\u0652\u0641\u064e\u0627\u062a\u0650\u062d\u064e\u0629\u0650",7],[2,"Al-Baqara","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0628\u064e\u0642\u064e\u0631\u064e\u0629\u0650",286],[3,"Aal-i-Imraan","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0622\u0644\u0650 \u0639\u0650\u0645\u0631\u064e\u0627\u0646\u064e",200],[4,"An-Nisaa","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0646\u0651\u0650\u0633\u064e\u0627\u0621\u0650",176],[5,"Al-Maaida","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0645\u064e\u0627\u0626\u0650\u062f\u064e\u0629\u0650",120],[6,"Al-An'aam","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0623\u064e\u0646\u0639\u064e\u0627\u0645\u0650",165],[7,"Al-A'raaf","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0623\u064e\u0639\u0631\u064e\u0627\u0641\u0650",206],[8,"Al-Anfaal","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0623\u064e\u0646\u0641\u064e\u0627\u0644\u0650",75],[9,"At-Tawba","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062a\u0651\u064e\u0648\u0628\u064e\u0629\u0650",129],[10,"Yunus","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u064a\u064f\u0648\u0646\u064f\u0633\u064e",109],[11,"Hud","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0647\u064f\u0648\u062f\u064d",123],[12,"Yusuf","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u064a\u064f\u0648\u0633\u064f\u0641\u064e",111],[13,"Ar-Ra'd","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0631\u0651\u064e\u0639\u062f\u0650",43],[14,"Ibrahim","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0625\u0650\u0628\u0631\u064e\u0627\u0647\u0650\u064a\u0645\u064e",52],[15,"Al-Hijr","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062d\u0650\u062c\u0631\u0650",99],[16,"An-Nahl","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0646\u0651\u064e\u062d\u0644\u0650",128],[17,"Al-Israa","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0625\u0650\u0633\u0631\u064e\u0627\u0621\u0650",111],[18,"Al-Kahf","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0643\u064e\u0647\u0641\u0650",110],[19,"Maryam","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0645\u0631\u064a\u064e\u0645\u064e",98],[20,"Taa-Haa","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0637\u0647",135],[21,"Al-Anbiyaa","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0623\u064e\u0646\u0628\u0650\u064a\u064e\u0627\u0621\u0650",112],[22,"Al-Hajj","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062d\u064e\u062c\u0651\u0650",78],[23,"Al-Muminoon","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0645\u064f\u0624\u0645\u0650\u0646\u064f\u0648\u0646\u064e",118],[24,"An-Noor","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0646\u0651\u064f\u0648\u0631\u0650",64],[25,"Al-Furqaan","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0641\u064f\u0631\u0642\u064e\u0627\u0646\u0650",77],[26,"Ash-Shu'araa","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0634\u0651\u064f\u0639\u064e\u0631\u064e\u0627\u0621\u0650",227],[27,"An-Naml","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0646\u0651\u064e\u0645\u0644\u0650",93],[28,"Al-Qasas","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0642\u064e\u0635\u064e\u0635\u0650",88],[29,"Al-Ankaboot","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0639\u064e\u0646\u0643\u064e\u0628\u064f\u0648\u062a\u0650",69],[30,"Ar-Room","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0631\u0651\u064f\u0648\u0645\u0650",60],[31,"Luqman","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0644\u064f\u0642\u0645\u064e\u0627\u0646\u064e",34],[32,"As-Sajda","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0633\u0651\u064e\u062c\u062f\u064e\u0629\u0650",30],[33,"Al-Ahzaab","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0623\u064e\u062d\u0632\u064e\u0627\u0628\u0650",73],[34,"Saba","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0633\u064e\u0628\u064e\u0625\u064d",54],[35,"Faatir","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0641\u064e\u0627\u0637\u0650\u0631\u064d",45],[36,"Yaseen","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u064a\u0633",83],[37,"As-Saaffaat","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0635\u0651\u064e\u0627\u0641\u0651\u064e\u0627\u062a\u0650",182],[38,"Saad","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0635",88],[39,"Az-Zumar","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0632\u0651\u064f\u0645\u064e\u0631\u0650",75],[40,"Ghafir","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u063a\u064e\u0627\u0641\u0650\u0631\u064d",85],[41,"Fussilat","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0641\u064f\u0635\u0651\u0650\u0644\u064e\u062a",54],[42,"Ash-Shura","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0634\u0651\u064f\u0648\u0631\u064e\u0649",53],[43,"Az-Zukhruf","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0632\u0651\u064f\u062e\u0631\u064f\u0641\u0650",89],[44,"Ad-Dukhaan","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062f\u0651\u064f\u062e\u064e\u0627\u0646\u0650",59],[45,"Al-Jaathiya","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062c\u064e\u0627\u062b\u0650\u064a\u064e\u0629\u0650",37],[46,"Al-Ahqaf","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0623\u064e\u062d\u0642\u064e\u0627\u0641\u0650",35],[47,"Muhammad","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0645\u064f\u062d\u064e\u0645\u0651\u064e\u062f\u064d",38],[48,"Al-Fath","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0641\u064e\u062a\u062d\u0650",29],[49,"Al-Hujuraat","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062d\u064f\u062c\u064f\u0631\u064e\u0627\u062a\u0650",18],[50,"Qaaf","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0642",45],[51,"Adh-Dhaariyat","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0630\u0651\u064e\u0627\u0631\u0650\u064a\u064e\u0627\u062a\u0650",60],[52,"At-Tur","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0637\u0651\u064f\u0648\u0631\u0650",49],[53,"An-Najm","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0646\u0651\u064e\u062c\u0645\u0650",62],[54,"Al-Qamar","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0642\u064e\u0645\u064e\u0631\u0650",55],[55,"Ar-Rahmaan","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0631\u0651\u064e\u062d\u0645\u064e\u0646",78],[56,"Al-Waaqia","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0648\u064e\u0627\u0642\u0650\u0639\u064e\u0629\u0650",96],[57,"Al-Hadid","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062d\u064e\u062f\u0650\u064a\u062f\u0650",29],[58,"Al-Mujaadila","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0645\u064f\u062c\u064e\u0627\u062f\u0644\u064e\u0629\u0650",22],[59,"Al-Hashr","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062d\u064e\u0634\u0631\u0650",24],[60,"Al-Mumtahana","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0645\u064f\u0645\u062a\u064e\u062d\u0646\u064e\u0629\u0650",13],[61,"As-Saff","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0635\u0651\u064e\u0641\u0651\u0650",14],[62,"Al-Jumu'a","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062c\u064f\u0645\u064f\u0639\u064e\u0629\u0650",11],[63,"Al-Munaafiqoon","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0645\u064f\u0646\u064e\u0627\u0641\u0650\u0642\u064f\u0648\u0646\u064e",11],[64,"At-Taghaabun","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062a\u0651\u064e\u063a\u064e\u0627\u0628\u064f\u0646\u0650",18],[65,"At-Talaaq","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0637\u0651\u064e\u0644\u064e\u0627\u0642\u0650",12],[66,"At-Tahrim","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062a\u0651\u064e\u062d\u0631\u0650\u064a\u0645\u0650",12],[67,"Al-Mulk","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0645\u064f\u0644\u0643\u0650",30],[68,"Al-Qalam","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0642\u064e\u0644\u064e\u0645\u0650",52],[69,"Al-Haaqqa","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062d\u064e\u0627\u0642\u0651\u064e\u0629\u0650",52],[70,"Al-Ma'aarij","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0645\u064e\u0639\u064e\u0627\u0631\u0650\u062c\u0650",44],[71,"Nooh","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0646\u064f\u0648\u062d\u064d",28],[72,"Al-Jinn","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062c\u0650\u0646\u0651\u0650",28],[73,"Al-Muzzammil","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0645\u064f\u0632\u0651\u064e\u0645\u0651\u0650\u0644\u0650",20],[74,"Al-Muddaththir","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0645\u064f\u062f\u0651\u064e\u062b\u0651\u0650\u0631\u0650",56],[75,"Al-Qiyaama","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0642\u0650\u064a\u064e\u0627\u0645\u064e\u0629\u0650",40],[76,"Al-Insaan","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0625\u0650\u0646\u0633\u064e\u0627\u0646\u0650",31],[77,"Al-Mursalaat","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0645\u0631\u0633\u064e\u0644\u064e\u0627\u062a\u0650",50],[78,"An-Naba","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0646\u0651\u064e\u0628\u064e\u0625\u0650",40],[79,"An-Naazi'aat","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0646\u0651\u064e\u0627\u0632\u0650\u0639\u064e\u0627\u062a\u0650",46],[80,"Abasa","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0639\u064e\u0628\u064e\u0633\u064e",42],[81,"At-Takwir","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062a\u0651\u064e\u0643\u0648\u0650\u064a\u0631\u0650",29],[82,"Al-Infitaar","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0627\u0646\u0641\u0650\u0637\u064e\u0627\u0631\u0650",19],[83,"Al-Mutaffifin","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0645\u064f\u0637\u064e\u0641\u0651\u0650\u0641\u0650\u064a\u0646\u064e",36],[84,"Al-Inshiqaaq","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0627\u0646\u0634\u0650\u0642\u064e\u0627\u0642\u0650",25],[85,"Al-Burooj","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0628\u064f\u0631\u064f\u0648\u062c\u0650",22],[86,"At-Taariq","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0637\u0651\u064e\u0627\u0631\u0650\u0642\u0650",17],[87,"Al-A'laa","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0623\u064e\u0639\u0644\u064e\u0649",19],[88,"Al-Ghaashiya","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u063a\u064e\u0627\u0634\u0650\u064a\u064e\u0629\u0650",26],[89,"Al-Fajr","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0641\u064e\u062c\u0631\u0650",30],[90,"Al-Balad","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0628\u064e\u0644\u064e\u062f\u0650",20],[91,"Ash-Shams","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0634\u0651\u064e\u0645\u0633\u0650",15],[92,"Al-Lail","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0644\u0651\u064e\u064a\u0644\u0650",21],[93,"Ad-Dhuhaa","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0636\u0651\u064f\u062d\u064e\u0649",11],[94,"Ash-Sharh","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0634\u0651\u064e\u0631\u062d\u0650",8],[95,"At-Tin","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062a\u0651\u0650\u064a\u0646\u0650",8],[96,"Al-Alaq","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0639\u064e\u0644\u064e\u0642\u0650",19],[97,"Al-Qadr","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0642\u064e\u062f\u0631\u0650",5],[98,"Al-Bayyina","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0628\u064e\u064a\u0651\u0650\u0646\u064e\u0629\u0650",8],[99,"Az-Zalzala","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0632\u0651\u064e\u0644\u0632\u064e\u0644\u064e\u0629\u0650",8],[100,"Al-Aadiyaat","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0639\u064e\u0627\u062f\u0650\u064a\u064e\u0627\u062a\u0650",11],[101,"Al-Qaari'a","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0642\u064e\u0627\u0631\u0650\u0639\u064e\u0629\u0650",11],[102,"At-Takaathur","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u062a\u0651\u064e\u0643\u064e\u0627\u062b\u064f\u0631\u0650",8],[103,"Al-Asr","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0639\u064e\u0635\u0631\u0650",3],[104,"Al-Humaza","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0647\u064f\u0645\u064e\u0632\u064e\u0629\u0650",9],[105,"Al-Fil","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0641\u0650\u064a\u0644\u0650",5],[106,"Quraish","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0642\u064f\u0631\u064e\u064a\u0634\u064d",4],[107,"Al-Maa'un","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0645\u064e\u0627\u0639\u064f\u0648\u0646\u0650",7],[108,"Al-Kawthar","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0643\u064e\u0648\u062b\u064e\u0631\u0650",3],[109,"Al-Kaafiroon","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0643\u064e\u0627\u0641\u0650\u0631\u064f\u0648\u0646\u064e",6],[110,"An-Nasr","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0646\u0651\u064e\u0635\u0631\u0650",3],[111,"Al-Masad","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0645\u064e\u0633\u064e\u062f\u0650",5],[112,"Al-Ikhlaas","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0625\u0650\u062e\u0644\u064e\u0627\u0635\u0650",4],[113,"Al-Falaq","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0641\u064e\u0644\u064e\u0642\u0650",5],[114,"An-Naas","\u0633\u064f\u0648\u0631\u064e\u0629\u064f \u0627\u0644\u0646\u0651\u064e\u0627\u0633\u0650",6]];
+
+    // Compute starting ayah number for each surah
+    const SURAH_STARTS = [];
+    let _acc = 1;
+    for (const s of SURAHS) { SURAH_STARTS.push(_acc); _acc += s[3]; }
+
+    // ===== TAB SWITCHING =====
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById('tab' + this.dataset.tab.charAt(0).toUpperCase() + this.dataset.tab.slice(1)).classList.add('active');
+        if (this.dataset.tab === 'quran') renderQuran();
+      });
+    });
+
+    // ===== QURAN VIEW =====
+    function renderQuran() {
+      const learned = progress.learned;
+      const pct = ((learned / TOTAL) * 100).toFixed(1);
+
+      document.getElementById('quranOverallFill').style.width = pct + '%';
+      document.getElementById('quranOverallText').textContent = learned.toLocaleString() + ' of 6,236 ayahs learned (' + pct + '%)';
+
+      const container = document.getElementById('surahList');
+      // Only rebuild if not already built
+      if (container.children.length === 0) {
+        let html = '';
+        for (let i = 0; i < SURAHS.length; i++) {
+          const [num, en, ar, count] = SURAHS[i];
+          html += '<div class="surah-card" data-idx="' + i + '">';
+          html += '<div class="surah-card-header">';
+          html += '<div class="surah-num">' + num + '</div>';
+          html += '<div class="surah-card-info">';
+          html += '<div class="surah-card-name"><span>' + en + '</span><span class="surah-card-name-ar">' + ar + '</span></div>';
+          html += '<div class="surah-card-progress"><div class="surah-bar"><div class="surah-bar-fill" id="sbar' + i + '"></div></div><span class="surah-pct" id="spct' + i + '"></span></div>';
+          html += '</div></div>';
+          // Ayah dots
+          html += '<div class="surah-dots" id="sdots' + i + '">';
+          for (let a = 0; a < count; a++) {
+            html += '<div class="ayah-dot" id="adot' + i + '_' + a + '"></div>';
+          }
+          html += '</div></div>';
+        }
+        container.innerHTML = html;
+
+        // Toggle expand on click
+        container.addEventListener('click', function(e) {
+          const card = e.target.closest('.surah-card');
+          if (card) card.classList.toggle('expanded');
+        });
+      }
+
+      // Update fills
+      for (let i = 0; i < SURAHS.length; i++) {
+        const count = SURAHS[i][3];
+        const start = SURAH_STARTS[i];
+        const done = Math.max(0, Math.min(count, learned - start + 1));
+        const sp = count > 0 ? Math.round((done / count) * 100) : 0;
+
+        document.getElementById('sbar' + i).style.width = sp + '%';
+        document.getElementById('spct' + i).textContent = done + '/' + count;
+
+        const card = document.querySelectorAll('.surah-card')[i];
+        if (done >= count) card.classList.add('complete');
+        else card.classList.remove('complete');
+
+        // Update dots
+        for (let a = 0; a < count; a++) {
+          const dot = document.getElementById('adot' + i + '_' + a);
+          if (start + a <= learned) dot.classList.add('done');
+          else dot.classList.remove('done');
+        }
+      }
+    }
+
+    // ===== INIT =====
+    // Auth is handled entirely by onAuthStateChange above
+  </script>
+</body>
+</html>
