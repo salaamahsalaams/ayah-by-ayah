@@ -2667,6 +2667,7 @@
       settings.direction = this.value;
       saveSettings();
       render();
+      renderQuran();
     });
 
     document.getElementById('setTheme').addEventListener('change', function() {
@@ -3020,6 +3021,7 @@
 
     // ===== QURAN VIEW =====
     let _lastQuranDirection = null;
+    let _surahClickBound = false;
 
     function renderQuran() {
       const learned = progress.learned;
@@ -3056,10 +3058,13 @@
         }
         container.innerHTML = html;
 
-        container.addEventListener('click', function(e) {
-          const card = e.target.closest('.surah-card');
-          if (card) card.classList.toggle('expanded');
-        });
+        if (!_surahClickBound) {
+          _surahClickBound = true;
+          container.addEventListener('click', function(e) {
+            const card = e.target.closest('.surah-card');
+            if (card) card.classList.toggle('expanded');
+          });
+        }
       }
 
       // Update fills
