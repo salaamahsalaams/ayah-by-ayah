@@ -2,7 +2,7 @@
   "name": "Ayah by Ayah",
   "short_name": "Ayah",
   "description": "Learn the Quran one ayah at a time",
-  "start_url": "/index.html",
+  "start_url": "/ayah-by-ayah/",
   "display": "standalone",
   "background_color": "#111118",
   "theme_color": "#111118",
