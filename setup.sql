@@ -35,6 +35,8 @@ create table user_settings (
   notification_frequency text not null default 'daily',
   notification_count int not null default 1,
   notification_times jsonb not null default '["08:00"]'::jsonb,
+  completed_surahs jsonb not null default '[]'::jsonb,
+  progression_mode text not null default 'quran',
   updated_at timestamptz default now()
 );
 
